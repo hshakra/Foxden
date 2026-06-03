@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-function useRecentIOC() {
+export default function useRecentIOC() {
   const query = useQuery({
     queryKey: ["recentIOCs"],
     queryFn: async () => {
@@ -14,5 +14,3 @@ function useRecentIOC() {
   });
   return query;
 }
-
-export default useRecentIOC;

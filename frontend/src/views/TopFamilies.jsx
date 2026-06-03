@@ -9,7 +9,7 @@ export function TopFamilies({ iocs }) {
 
   return (
     <div>
-      <span>Top Families</span>
+      <span style={{ fontWeight: "bold" }}>Top Families</span>
       <div>
         {data.map((i) => (
           <FamilyCard key={i.name} name={i.name} count={i.count} />

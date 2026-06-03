@@ -93,11 +93,12 @@ export function rankTags(iocs) {
 
   return Object.entries(tagsRank)
     .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
     .map(([tag, count]) => ({ tag, count }));
 }
 
 export function sortRecentStream(iocs) {
-  return iocs
+  return [...iocs]
     .sort((a, b) => b.first_seen.localeCompare(a.first_seen))
     .slice(0, 20)
     .map((ioc) => ({

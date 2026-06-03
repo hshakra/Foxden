@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { groupByIOCType } from "../utils/processor";
-import { PieChart, Pie, Tooltip } from "recharts";
+import { PieChart, Pie, Tooltip, Legend } from "recharts";
 
 export function TypeBreakdown({ iocs }) {
   //count and percentage
@@ -12,9 +12,14 @@ export function TypeBreakdown({ iocs }) {
           data={data}
           dataKey="percentage"
           nameKey="type"
+          innerRadius={"10%"}
+          outerRadius={"100%"}
+          cornerRadius={"5%"}
+          paddingAngle={3}
           label={({ percentage }) => `${percentage}`}
         />
         <Tooltip />
+        <Legend />
       </PieChart>
     </div>
   );

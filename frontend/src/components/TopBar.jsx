@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { useRange, RANGES } from "../lib/range";
+import { useLookup } from "../lib/lookup";
 
 function Freshness() {
   const queryClient = useQueryClient();
@@ -36,6 +37,7 @@ function Freshness() {
 
 export function TopBar({ title, subtitle, children }) {
   const { days, setDays } = useRange();
+  const { openLookup } = useLookup();
 
   return (
     <div className="flex items-center gap-3.5 border-b border-line px-5 py-3">
@@ -50,6 +52,7 @@ export function TopBar({ title, subtitle, children }) {
 
       <button
         type="button"
+        onClick={openLookup}
         className="ml-auto flex min-w-[210px] items-center gap-2 rounded-lg border border-line bg-surface-1 px-3 py-1.5 text-left text-xs text-ink-3 hover:border-line-2 hover:text-ink-2"
       >
         <Search size={13} />

@@ -60,7 +60,7 @@ export function ConfidenceCell({ level }) {
   One IOC as a feed row: type badge · mono value + copy · family link ·
   confidence (color + label, rule 4) · time ago · overflow menu.
 */
-export function IOCCard({ ioc, selected, onSelect }) {
+export function IOCCard({ ioc, selected, onSelect, onFamilyClick }) {
   const [copied, setCopied] = useState(false);
 
   async function copyValue(e) {
@@ -104,13 +104,28 @@ export function IOCCard({ ioc, selected, onSelect }) {
         </button>
       </span>
 
-      <Link
-        to={`/family/${encodeURIComponent(ioc.malware_printable)}`}
-        onClick={(e) => e.stopPropagation()}
-        className="truncate text-[11.5px] font-semibold text-accent-soft hover:underline"
-      >
-        {ioc.malware_printable}
-      </Link>
+      {onFamilyClick ? (
+        // cross-filter in place (rule 1); the profile link lives in the drawer
+        <button
+          type="button"
+          title={`Filter feed to ${ioc.malware_printable}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onFamilyClick();
+          }}
+          className="truncate text-left text-[11.5px] font-semibold text-accent-soft hover:underline"
+        >
+          {ioc.malware_printable}
+        </button>
+      ) : (
+        <Link
+          to={`/family/${encodeURIComponent(ioc.malware_printable)}`}
+          onClick={(e) => e.stopPropagation()}
+          className="truncate text-[11.5px] font-semibold text-accent-soft hover:underline"
+        >
+          {ioc.malware_printable}
+        </Link>
+      )}
 
       <ConfidenceCell level={ioc.confidence_level} />
 

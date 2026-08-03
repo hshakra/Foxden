@@ -4,6 +4,8 @@ import { RangeProvider } from "./lib/RangeContext";
 import LiveFeed from "./views/LiveFeed";
 import TagExplorer from "./views/TagExplorer";
 import { FamilyProfile } from "./views/FamilyProfile";
+import FamiliesIndex from "./views/FamiliesIndex";
+import TagsIndex from "./views/TagsIndex";
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
         <Routes>
           <Route element={<AppShell />}>
             <Route path="/" element={<LiveFeed />} />
+            <Route path="/families" element={<FamiliesIndex />} />
+            <Route path="/tags" element={<TagsIndex />} />
             <Route path="/family/:name" element={<FamilyProfile />} />
             <Route path="/tag/:name" element={<TagExplorer />} />
           </Route>

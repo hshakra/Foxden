@@ -1,15 +1,24 @@
 import { NavLink } from "react-router-dom";
 import { LayoutGrid, Shield, Tag, Search } from "lucide-react";
 import { FoxLogo } from "./FoxLogo";
+import { useLookup } from "../lib/lookup";
 
 const items = [
   { to: "/", label: "Overview", icon: LayoutGrid, end: true },
   { to: "/families", label: "Families", icon: Shield },
   { to: "/tags", label: "Tags", icon: Tag },
-  { to: "/lookup", label: "Lookup", icon: Search },
 ];
 
+const itemClass = (isActive) =>
+  `flex w-[58px] flex-col items-center gap-1 rounded-xl py-2 text-[9.5px] transition-colors ${
+    isActive
+      ? "bg-surface-2 text-ink [&_svg]:text-accent-soft"
+      : "text-ink-3 hover:bg-surface-2/60 hover:text-ink-2"
+  }`;
+
 export function NavRail() {
+  const { openLookup } = useLookup();
+
   return (
     <aside className="w-[76px] shrink-0 bg-surface-1 border-r border-line flex flex-col items-center py-4">
       <NavLink to="/" aria-label="Foxden home">
@@ -22,18 +31,16 @@ export function NavRail() {
             key={to}
             to={to}
             end={end}
-            className={({ isActive }) =>
-              `flex w-[58px] flex-col items-center gap-1 rounded-xl py-2 text-[9.5px] transition-colors ${
-                isActive
-                  ? "bg-surface-2 text-ink [&_svg]:text-accent-soft"
-                  : "text-ink-3 hover:bg-surface-2/60 hover:text-ink-2"
-              }`
-            }
+            className={({ isActive }) => itemClass(isActive)}
           >
             <Icon size={18} strokeWidth={2} />
             <span>{label}</span>
           </NavLink>
         ))}
+        <button type="button" onClick={openLookup} className={itemClass(false)}>
+          <Search size={18} strokeWidth={2} />
+          <span>Lookup</span>
+        </button>
       </nav>
 
       <div className="mt-auto flex flex-col items-center gap-1.5 font-mono text-[8px] tracking-wider text-ink-3">

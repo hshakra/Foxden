@@ -5,16 +5,18 @@ import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
 import { SignalStrip } from "../components/SignalStrip";
 import { OriginMap } from "../components/OriginMap";
 import { FeedTable } from "../components/FeedTable";
+import { IOCDrawer } from "../components/IOCDrawer";
 import { TopFamilies } from "./TopFamilies.jsx";
 import { TopTags } from "./TopTags.jsx";
 
 /*
   The Overview screen, per Shneiderman: overview strip → map hero →
-  filterable feed. Detail drawer arrives in Phase 3.
+  filterable feed with an in-place detail drawer. No dead ends.
 */
 export default function LiveFeed() {
   const recent = useRecentIOCs();
   const [selected, setSelected] = useState(null);
+  const [familyFilter, setFamilyFilter] = useState(null);
 
   return (
     <>
@@ -33,11 +35,26 @@ export default function LiveFeed() {
           <>
             <SignalStrip iocs={recent.data} />
             <OriginMap iocs={recent.data} />
-            <FeedTable
-              iocs={recent.data}
-              selectedId={selected?.id}
-              onSelect={setSelected}
-            />
+            <div
+              className={`grid items-start gap-4 ${
+                selected ? "lg:grid-cols-[minmax(0,1fr)_300px]" : ""
+              }`}
+            >
+              <FeedTable
+                iocs={recent.data}
+                selectedId={selected?.id}
+                onSelect={setSelected}
+                familyFilter={familyFilter}
+                onFamilyFilterChange={setFamilyFilter}
+              />
+              {selected && (
+                <IOCDrawer
+                  ioc={selected}
+                  onClose={() => setSelected(null)}
+                  onFilterFamily={(family) => setFamilyFilter(family)}
+                />
+              )}
+            </div>
             <div className="grid gap-4 lg:grid-cols-2">
               <TopFamilies iocs={recent.data} />
               <TopTags iocs={recent.data} />

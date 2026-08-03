@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { sortRecentStream } from "../utils/processor";
@@ -8,8 +8,9 @@ import { EmptyState } from "./states";
 /*
   The working surface: newest-first IOC stream with
   - filter chips that show their state (recognition over recall)
+  - cross-filter by family from any row or the drawer (rule 1)
   - same-family bursts clustered behind an expandable row (rule 12)
-  - virtualized rows past the first screenful (rule 14)
+  - virtualized rows (rule 14) and j/k/enter/esc keyboard triage (rule 11)
 */
 
 const TYPE_FILTERS = ["all", "ip:port", "domain", "url", "hash"];
@@ -42,7 +43,22 @@ function buildDisplayItems(stream, expanded) {
   return items;
 }
 
-export function FeedTable({ iocs, selectedId, onSelect }) {
+function isTypingTarget(el) {
+  return (
+    el &&
+    (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)
+  );
+}
+
+export function FeedTable({
+  iocs,
+  selectedId,
+  onSelect,
+  familyFilter,
+  onFamilyFilterChange,
+  title = "Live IOC feed",
+  cluster = true,
+}) {
   const [typeFilter, setTypeFilter] = useState("all");
   const [minConf, setMinConf] = useState(0);
   const [expanded, setExpanded] = useState(() => new Set());
@@ -56,13 +72,17 @@ export function FeedTable({ iocs, selectedId, onSelect }) {
       if (typeFilter !== "all" && typeFilter !== "hash" && ioc.ioc_type !== typeFilter)
         return false;
       if ((Number(ioc.confidence_level) || 0) < minConf) return false;
+      if (familyFilter && ioc.malware_printable !== familyFilter) return false;
       return true;
     });
-  }, [stream, typeFilter, minConf]);
+  }, [stream, typeFilter, minConf, familyFilter]);
 
   const items = useMemo(
-    () => buildDisplayItems(filtered, expanded),
-    [filtered, expanded],
+    () =>
+      cluster
+        ? buildDisplayItems(filtered, expanded)
+        : filtered.map((ioc) => ({ kind: "ioc", ioc })),
+    [filtered, expanded, cluster],
   );
 
   const virtualizer = useVirtualizer({
@@ -71,6 +91,43 @@ export function FeedTable({ iocs, selectedId, onSelect }) {
     estimateSize: () => 37,
     overscan: 12,
   });
+
+  // j/k move selection, enter opens, esc closes (rule 11)
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (isTypingTarget(document.activeElement)) return;
+      if (!["j", "k", "Enter", "Escape"].includes(e.key)) return;
+
+      const iocItems = items.filter((it) => it.kind === "ioc");
+      if (e.key === "Escape") {
+        onSelect?.(null);
+        return;
+      }
+      if (iocItems.length === 0) return;
+
+      const idx = iocItems.findIndex((it) => it.ioc.id === selectedId);
+      if (e.key === "j") {
+        e.preventDefault();
+        onSelect?.(iocItems[Math.min(idx + 1, iocItems.length - 1)].ioc);
+      } else if (e.key === "k") {
+        e.preventDefault();
+        onSelect?.(iocItems[Math.max(idx - 1, 0)].ioc);
+      } else if (e.key === "Enter" && idx >= 0) {
+        onSelect?.(iocItems[idx].ioc);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [items, selectedId, onSelect]);
+
+  // keep the selected row in view when navigating by keyboard
+  useEffect(() => {
+    if (!selectedId) return;
+    const index = items.findIndex(
+      (it) => it.kind === "ioc" && it.ioc.id === selectedId,
+    );
+    if (index >= 0) virtualizer.scrollToIndex(index, { align: "auto" });
+  }, [selectedId, items, virtualizer]);
 
   function cycleType() {
     const next =
@@ -90,9 +147,12 @@ export function FeedTable({ iocs, selectedId, onSelect }) {
   return (
     <div className="rounded-xl border border-line bg-surface-1 p-4">
       <div className="mb-2.5 flex items-baseline gap-2.5">
-        <h4 className="text-[13px] font-semibold">Live IOC feed</h4>
+        <h4 className="text-[13px] font-semibold">{title}</h4>
         <span className="font-mono text-[10px] text-ink-3">
           newest first · {filtered.length.toLocaleString()} IOCs
+        </span>
+        <span className="ml-auto hidden font-mono text-[9px] text-ink-3 lg:block">
+          j / k move · enter open · esc close
         </span>
       </div>
 
@@ -119,6 +179,15 @@ export function FeedTable({ iocs, selectedId, onSelect }) {
         >
           {minConf ? `confidence ≥ ${minConf} ×` : "confidence: all"}
         </button>
+        {familyFilter && (
+          <button
+            type="button"
+            onClick={() => onFamilyFilterChange?.(null)}
+            className="rounded-full border border-accent/50 bg-accent/10 px-2.5 py-1 font-mono text-[10px] text-accent-soft"
+          >
+            family: {familyFilter} ×
+          </button>
+        )}
       </div>
 
       <div
@@ -143,6 +212,7 @@ export function FeedTable({ iocs, selectedId, onSelect }) {
             onAction={() => {
               setTypeFilter("all");
               setMinConf(0);
+              onFamilyFilterChange?.(null);
             }}
           />
         </div>
@@ -185,6 +255,11 @@ export function FeedTable({ iocs, selectedId, onSelect }) {
                         ioc={item.ioc}
                         selected={selectedId === item.ioc.id}
                         onSelect={() => onSelect?.(item.ioc)}
+                        onFamilyClick={
+                          onFamilyFilterChange
+                            ? () => onFamilyFilterChange(item.ioc.malware_printable)
+                            : undefined
+                        }
                       />
                     </div>
                   )}

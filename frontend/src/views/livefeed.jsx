@@ -9,7 +9,7 @@ export default function LiveFeed() {
 
   // guard
   if (recent.isLoading) return <div>Loading..</div>;
-  if (recent.isError) return <div>Loading..</div>;
+  if (recent.isError) return <div>Error: {recent.error}</div>;
 
   console.log(recent.data.data);
 

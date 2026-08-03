@@ -25,7 +25,7 @@ export function rankFamilies(iocs) {
     .map(([name, count]) => ({ name, count }));
 }
 
-export function buildDailyChart(iocs) {
+export function buildDailyChart(iocs, days = 7) {
   let dailyIOCS = {};
 
   /*
@@ -41,9 +41,9 @@ export function buildDailyChart(iocs) {
     }
   }
 
-  // sorting and filling gaps
+  // sorting and filling gaps across the selected range
   const finalDaily = [];
-  for (let c = 6; c >= 0; c--) {
+  for (let c = days - 1; c >= 0; c--) {
     const d = new Date();
     d.setDate(d.getDate() - c);
     const dateStr = d.toISOString().split("T")[0];
@@ -98,11 +98,75 @@ export function rankTags(iocs) {
 }
 
 export function sortRecentStream(iocs) {
+  // full sorted stream — the feed virtualizes, so no slice
   return [...iocs]
     .sort((a, b) => b.first_seen.localeCompare(a.first_seen))
-    .slice(0, 20)
     .map((ioc) => ({
       ...ioc,
-      threat_type_label: threatTypeMap[ioc.threat_type],
+      threat_type_label: threatTypeMap[ioc.threat_type] || ioc.threat_type,
     }));
+}
+
+// KPI numbers for the signal strip — each metric computed once
+export function computeKpis(iocs) {
+  const families = new Set();
+  const tags = new Set();
+  let confidenceSum = 0;
+
+  for (let a = 0; a < iocs.length; a++) {
+    if (iocs[a].malware_printable) families.add(iocs[a].malware_printable);
+    const iocTags = iocs[a].tags || [];
+    for (let t = 0; t < iocTags.length; t++) tags.add(iocTags[t]);
+    confidenceSum += Number(iocs[a].confidence_level) || 0;
+  }
+
+  return {
+    total: iocs.length,
+    familyCount: families.size,
+    tagCount: tags.size,
+    avgConfidence: iocs.length ? Math.round(confidenceSum / iocs.length) : 0,
+  };
+}
+
+// stacked distribution for the signal strip; hash variants merge into "hash"
+export function typeDistribution(iocs) {
+  const counts = {};
+  for (let a = 0; a < iocs.length; a++) {
+    const raw = iocs[a].ioc_type || "other";
+    const type = raw.endsWith("_hash") ? "hash" : raw;
+    counts[type] = (counts[type] || 0) + 1;
+  }
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([type, count]) => ({
+      type,
+      count,
+      pct: Math.round((count / iocs.length) * 1000) / 10,
+    }));
+}
+
+// unique IPs from ip:port IOCs, for the origin map
+export function extractIPs(iocs, limit = 500) {
+  const seen = new Set();
+  const ips = [];
+  for (let a = 0; a < iocs.length && ips.length < limit; a++) {
+    if (iocs[a].ioc_type !== "ip:port") continue;
+    const ip = iocs[a].ioc.split(":")[0];
+    if (!seen.has(ip)) {
+      seen.add(ip);
+      ips.push(ip);
+    }
+  }
+  return ips;
+}
+
+// per-IP confidence lookup so the map can aggregate either way
+export function ipConfidenceMap(iocs) {
+  const map = {};
+  for (let a = 0; a < iocs.length; a++) {
+    if (iocs[a].ioc_type !== "ip:port") continue;
+    const ip = iocs[a].ioc.split(":")[0];
+    map[ip] = Number(iocs[a].confidence_level) || 0;
+  }
+  return map;
 }

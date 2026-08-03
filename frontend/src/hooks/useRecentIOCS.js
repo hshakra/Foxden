@@ -1,16 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
+import { api } from "../lib/api";
+import { useRange } from "../lib/range";
 
-export default function useRecentIOC() {
-  const query = useQuery({
-    queryKey: ["recentIOCs"],
-    queryFn: async () => {
-      const resp = await fetch("/api/recent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ days: 7 }),
-      });
-      return resp.json();
-    },
+export default function useRecentIOCs() {
+  const { days } = useRange();
+  return useQuery({
+    queryKey: ["recentIOCs", days],
+    queryFn: () => api.recent(days),
+    select: (data) => data.data ?? [],
   });
-  return query;
 }

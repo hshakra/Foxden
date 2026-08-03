@@ -1,33 +1,19 @@
+import { timeAgo } from "../lib/time";
+import { confidenceInfo } from "../lib/confidence";
+
+/*
+  One IOC as a feed row. Fully rebuilt in Phase 2 —
+  this valid stub keeps the module compiling until then.
+*/
 export function IOCCard({ ioc }) {
-  // name, value, threatype, color-coded confidence, reporter, time ago, copy
-  // will actually write the calculation properly just placeholder for now
-  const confidenceColor = ioc.confidence;
-  const currentTime = new Date().toLocaleTimeString();
-  // will actually rewrite this in a way that properly calcualtes by converting the strings but just this for now
-  const timeAgo = currentTime - ioc.last_seen;
-
-  const IOCValue;
-  // port, url, domain, md5 hash
-  switch (ioc.ioc_type) {
-    case "ip:port":
-      IOCValue = ioc.ioc;
-      break;
-    case "domain":
-      break;
-    case "url":
-      break;
-    case "md5_hash":
-      break;
-    case "sha256_hash":
-      break;
-    default:
-      break;
-  }
-
+  const conf = confidenceInfo(ioc.confidence_level);
   return (
-    <div>
-      <span>{ioc.malware_printable}</span>
-      <span>{ioc.threat_type}</span>
+    <div className="flex items-center gap-3 border-b border-line py-2 text-xs">
+      <span className="font-mono">{ioc.ioc}</span>
+      <span className="text-accent-soft">{ioc.malware_printable}</span>
+      <span className="ml-auto font-mono text-ink-3">
+        {conf.value} · {conf.label} · {timeAgo(ioc.first_seen)}
+      </span>
     </div>
   );
 }

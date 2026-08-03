@@ -1,1 +1,97 @@
 @import "tailwindcss";
+@import "@fontsource-variable/schibsted-grotesk";
+@import "@fontsource-variable/martian-mono";
+
+/*
+  Foxden design tokens — the single source of visual truth.
+  See DESIGN.md for the rules. Change values here, never inline.
+*/
+@theme {
+  /* surface ramp — elevation = lighter, never pure black */
+  --color-surface-0: #0e1014;
+  --color-surface-1: #161a21;
+  --color-surface-2: #1d232d;
+  --color-surface-3: #242c38;
+  --color-line: #262e3a;
+  --color-line-2: #333d4c;
+
+  /* text ramp */
+  --color-ink: #e0e2db;
+  --color-ink-2: #99a0a8;
+  --color-ink-3: #6b7380;
+
+  /* brand — glaucous is the one accent */
+  --color-accent: #7180b9;
+  --color-accent-soft: #aeb8dc;
+  --color-sage: #c2c6ae;
+  --color-slate: #7e8aa0;
+
+  /* IOC-type series */
+  --color-t-ip: #8fa0c9;
+  --color-t-domain: #aeb8dc;
+  --color-t-url: #c2c6ae;
+  --color-t-hash: #7e8aa0;
+
+  /* status — only on status, always with a text label */
+  --color-good: #3ddc84;
+  --color-warn: #ffb020;
+  --color-bad: #ff5470;
+
+  /* type */
+  --font-sans: "Schibsted Grotesk Variable", system-ui, sans-serif;
+  --font-mono: "Martian Mono Variable", ui-monospace, Menlo, monospace;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-surface-0);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* content-shaped loading shimmer (rule 9) */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-2),
+    var(--color-surface-3),
+    var(--color-surface-2)
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.6s infinite;
+}
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* live feed indicator */
+.live-pulse {
+  animation: live-pulse 2s infinite;
+}
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(61 220 132 / 0.5); }
+  70% { box-shadow: 0 0 0 6px rgb(61 220 132 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(61 220 132 / 0); }
+}
+
+/* visible keyboard focus everywhere (rule 15) */
+:focus-visible {
+  outline: 2px solid var(--color-accent-soft);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

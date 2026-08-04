@@ -12,8 +12,8 @@ export function Skeleton({ className = "" }) {
 }
 
 // after a while a quiet line explains the wait, threatfox has slow days
-// the skeleton alone reads as frozen once a load passes ten seconds
-function SlowNote({ delay = 10000 }) {
+// the skeleton alone reads as frozen once a load drags past a few seconds
+function SlowNote({ delay = 3000 }) {
   const [show, setShow] = useState(false);
 
   useEffect(() => {

@@ -9,7 +9,7 @@ export function parseThreatFoxDate(value) {
 
 export function timeAgo(value) {
   const d = value instanceof Date ? value : parseThreatFoxDate(value);
-  if (!d) return "—";
+  if (!d) return "–";
   const secs = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
   if (secs < 60) return `${secs}s`;
   const mins = Math.floor(secs / 60);

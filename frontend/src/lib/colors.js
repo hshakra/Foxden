@@ -61,6 +61,11 @@ export function heatColor(t) {
   return `color-mix(in oklab, ${RAMP[high]} ${mix}%, ${RAMP[low]})`;
 }
 
+// the same ramp as a css gradient, for written keys beside intensity visuals
+export function heatGradient() {
+  return `linear-gradient(90deg, ${RAMP.join(", ")})`;
+}
+
 export function threatColor(threat) {
   return THREAT_COLORS[threat] ?? THREAT_COLORS.other;
 }

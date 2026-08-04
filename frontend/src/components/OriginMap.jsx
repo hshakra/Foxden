@@ -9,7 +9,7 @@ import {
   extractIPs,
   ipConfidenceMap,
 } from "../lib/processor";
-import { CONF_COLORS } from "../lib/colors";
+import { CONF_COLORS, heatColor, heatGradient } from "../lib/colors";
 import { Skeleton } from "./states";
 import { Group } from "./ui/Group";
 
@@ -33,11 +33,16 @@ const COUNTRY_PATHS = countries.map((c) => ({
 
 const MODES = ["Volume", "Confidence"];
 
-// high confidence stays quiet, the map should flag the doubtful regions
-function confidenceColor(avg) {
-  if (avg >= 75) return CONF_COLORS.quiet;
-  if (avg >= 50) return CONF_COLORS.warn;
-  return CONF_COLORS.bad;
+// three discrete bands, softened so a map of mostly high confidence
+// stays quiet and the doubtful regions are what stands out
+const CONF_BANDS = [
+  { min: 75, label: "75 and up", fill: CONF_COLORS.quiet, opacity: 0.35 },
+  { min: 50, label: "50 to 74", fill: CONF_COLORS.warn, opacity: 0.6 },
+  { min: 0, label: "under 50", fill: CONF_COLORS.bad, opacity: 0.75 },
+];
+
+function confidenceBand(avg) {
+  return CONF_BANDS.find((b) => avg >= b.min) ?? CONF_BANDS[2];
 }
 
 export function OriginMap({ iocs }) {
@@ -78,14 +83,16 @@ export function OriginMap({ iocs }) {
   const maxCount = origins[0]?.count ?? 1;
 
   // shading strength, sqrt keeps mid sized countries visible next to the top one
+  // a small floor keeps single ioc countries above the no data shade
   function fillFor(a2) {
     const entry = a2 ? byCountry[a2] : null;
     if (!entry) return { fill: "var(--color-overlay)", opacity: 0.55 };
     if (mode === "Volume") {
       const t = Math.sqrt(entry.count / maxCount);
-      return { fill: "var(--color-accent)", opacity: 0.25 + t * 0.7 };
+      return { fill: heatColor(0.12 + t * 0.88), opacity: 1 };
     }
-    return { fill: confidenceColor(entry.avgConf), opacity: 0.6 };
+    const band = confidenceBand(entry.avgConf);
+    return { fill: band.fill, opacity: band.opacity };
   }
 
   const hoveredEntry = hovered ? byCountry[hovered.a2] : null;
@@ -96,7 +103,7 @@ export function OriginMap({ iocs }) {
       description={
         mode === "Volume"
           ? "Malicious IPs by country, brighter means more IOCs, click a country to browse"
-          : "Average confidence of malicious IPs per country, 0 to 100, click a country to browse"
+          : "Average confidence of malicious IPs per country in three bands, click a country to browse"
       }
       actions={
         <div
@@ -155,6 +162,28 @@ export function OriginMap({ iocs }) {
                   );
                 })}
               </svg>
+              <div className="pointer-events-none absolute bottom-2.5 left-3 flex items-center gap-2 rounded-md border border-line bg-raised/90 px-2.5 py-1.5 text-meta text-ink-low">
+                {mode === "Volume" ? (
+                  <>
+                    <span>fewer</span>
+                    <span
+                      className="h-[6px] w-24 rounded-sm"
+                      style={{ background: heatGradient() }}
+                    />
+                    <span>more IOCs</span>
+                  </>
+                ) : (
+                  CONF_BANDS.map((b) => (
+                    <span key={b.label} className="flex items-center gap-1.5">
+                      <span
+                        className="h-[7px] w-[7px] rounded-[2px]"
+                        style={{ background: b.fill, opacity: b.opacity }}
+                      />
+                      {b.label}
+                    </span>
+                  ))
+                )}
+              </div>
               {hovered && (
                 <div className="pointer-events-none absolute left-3 top-3 rounded-lg border border-line-strong bg-overlay px-2.5 py-1.5 font-mono text-meta shadow-lg">
                   <b>{hoveredEntry?.name ?? hovered.name}</b>
@@ -210,7 +239,7 @@ export function OriginMap({ iocs }) {
                       background:
                         mode === "Volume"
                           ? "var(--color-line-strong)"
-                          : confidenceColor(c.avgConf),
+                          : confidenceBand(c.avgConf).fill,
                     }}
                   />
                 </span>

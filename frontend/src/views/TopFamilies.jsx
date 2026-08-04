@@ -13,7 +13,7 @@ export function TopFamilies({ iocs }) {
       <div className="mb-2 flex items-baseline gap-2.5">
         <h4 className="text-[13px] font-semibold">Top families</h4>
         <span className="font-mono text-[10px] text-ink-3">
-          click → profile
+          click a family to open its profile
         </span>
       </div>
       <div>

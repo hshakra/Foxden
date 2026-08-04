@@ -9,7 +9,7 @@ export function TopTags({ iocs }) {
       <div className="mb-3 flex items-baseline gap-2.5">
         <h4 className="text-[13px] font-semibold">Trending tags</h4>
         <span className="font-mono text-[10px] text-ink-3">
-          click → explore
+          click a tag to explore it
         </span>
       </div>
       <div className="flex flex-wrap gap-2">

@@ -2,12 +2,8 @@ import { useMemo } from "react";
 import { computeKpis, buildDailyChart } from "../utils/processor";
 import { confidenceInfo } from "../lib/confidence";
 import { parseThreatFoxDate } from "../lib/time";
+import { CONF_COLORS } from "../lib/colors";
 
-const CONF_COLORS = {
-  good: "var(--color-good)",
-  warn: "var(--color-warn)",
-  bad: "var(--color-bad)",
-};
 
 function Stat({ label, value, valueColor }) {
   return (
@@ -25,9 +21,7 @@ function Stat({ label, value, valueColor }) {
   );
 }
 
-/*
-  Header for family/tag detail pages: identity + stats + 14-day sparkline.
-*/
+// header for the family and tag pages, identity plus stats plus a sparkline
 export function DetailHeader({ icon: Icon, title, kind, iocs }) {
   const kpis = useMemo(() => computeKpis(iocs), [iocs]);
   const spark = useMemo(() => buildDailyChart(iocs, 14), [iocs]);

@@ -11,11 +11,9 @@ function isTypingTarget(el) {
   );
 }
 
-/*
-  The layout skeleton every page sits in: persistent nav rail + workspace.
-  Pages render their own <TopBar/> so titles and controls stay per-view.
-  "/" opens the global IOC lookup from anywhere.
-*/
+// the layout skeleton every page sits in, nav rail plus workspace
+// pages render their own TopBar so titles and controls stay per view
+// pressing / opens the global ioc lookup from anywhere
 export function AppShell() {
   const [lookupOpen, setLookupOpen] = useState(false);
   const lookup = useMemo(

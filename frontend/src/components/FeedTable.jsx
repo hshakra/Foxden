@@ -5,13 +5,11 @@ import { sortRecentStream } from "../utils/processor";
 import { IOCCard } from "../views/IOCCard";
 import { EmptyState } from "./states";
 
-/*
-  The working surface: newest-first IOC stream with
-  - filter chips that show their state (recognition over recall)
-  - cross-filter by family from any row or the drawer (rule 1)
-  - same-family bursts clustered behind an expandable row (rule 12)
-  - virtualized rows (rule 14) and j/k/enter/esc keyboard triage (rule 11)
-*/
+// the main feed, newest first
+// filter chips always show their current state
+// clicking a family name filters the feed in place
+// bursts from one family collapse into an expandable cluster row
+// rows are virtualized and j k enter esc drive the keyboard
 
 const TYPE_FILTERS = ["all", "ip:port", "domain", "url", "hash"];
 const CLUSTER_MIN = 4;
@@ -92,10 +90,12 @@ export function FeedTable({
     overscan: 12,
   });
 
-  // j/k move selection, enter opens, esc closes (rule 11)
+  // j and k move the selection, enter opens, esc closes
   useEffect(() => {
     function onKeyDown(e) {
       if (isTypingTarget(document.activeElement)) return;
+      // let an open modal own the keyboard
+      if (document.querySelector('[role="dialog"]')) return;
       if (!["j", "k", "Enter", "Escape"].includes(e.key)) return;
 
       const iocItems = items.filter((it) => it.kind === "ioc");
@@ -247,7 +247,7 @@ export function FeedTable({
                       )}
                       <b className="text-ink">{item.family}</b>
                       <span>
-                        · {item.iocs.length} IOCs in a burst —{" "}
+                        burst of {item.iocs.length} IOCs, click to{" "}
                         {expanded.has(item.id) ? "collapse" : "expand"}
                       </span>
                     </button>

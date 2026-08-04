@@ -3,6 +3,7 @@ import { Copy, Check, MoreVertical, ExternalLink, Shield } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { timeAgo } from "../lib/time";
 import { confidenceInfo } from "../lib/confidence";
+import { CONF_COLORS } from "../lib/colors";
 
 const TYPE_STYLES = {
   "ip:port": "text-t-ip bg-t-ip/10 border-t-ip/25",
@@ -19,11 +20,6 @@ const TYPE_LABELS = {
   sha1_hash: "sha1",
 };
 
-const CONF_COLORS = {
-  good: "var(--color-good)",
-  warn: "var(--color-warn)",
-  bad: "var(--color-bad)",
-};
 
 export function TypeBadge({ type }) {
   return (
@@ -56,10 +52,8 @@ export function ConfidenceCell({ level }) {
   );
 }
 
-/*
-  One IOC as a feed row: type badge · mono value + copy · family link ·
-  confidence (color + label, rule 4) · time ago · overflow menu.
-*/
+// one ioc as a feed row
+// type badge, mono value with copy, family, confidence, time ago, row menu
 export function IOCCard({ ioc, selected, onSelect, onFamilyClick }) {
   const [copied, setCopied] = useState(false);
 
@@ -105,7 +99,7 @@ export function IOCCard({ ioc, selected, onSelect, onFamilyClick }) {
       </span>
 
       {onFamilyClick ? (
-        // cross-filter in place (rule 1); the profile link lives in the drawer
+        // filters the feed in place, the profile link lives in the drawer
         <button
           type="button"
           title={`Filter feed to ${ioc.malware_printable}`}
@@ -139,7 +133,7 @@ export function IOCCard({ ioc, selected, onSelect, onFamilyClick }) {
   );
 }
 
-/* per-row actions behind an overflow menu (rule 11) */
+// per row actions behind the triple dot menu
 function RowMenu({ ioc, onCopy }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);

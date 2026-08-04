@@ -1,7 +1,5 @@
-/*
-  ThreatFox timestamps look like "2026-05-21 21:58:26 UTC".
-  Parse them safely and render compact "time ago" strings.
-*/
+// threatfox timestamps look like "2026-05-21 21:58:26 UTC"
+// parse them safely and build short "time ago" strings
 export function parseThreatFoxDate(value) {
   if (!value) return null;
   const iso = value.replace(" ", "T").replace(" UTC", "Z");

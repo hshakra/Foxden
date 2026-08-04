@@ -1,6 +1,6 @@
 import { RefreshCw, SearchX } from "lucide-react";
 
-/* Content-shaped loading placeholder (rule 9 — no generic spinners). */
+// loading placeholder shaped like the real content, no generic spinners
 export function Skeleton({ className = "" }) {
   return (
     <span
@@ -10,7 +10,7 @@ export function Skeleton({ className = "" }) {
   );
 }
 
-/* A stack of row-shaped skeletons for feeds/tables. */
+// a stack of row shaped skeletons for feeds and tables
 export function SkeletonRows({ rows = 6 }) {
   return (
     <div role="status" aria-label="Loading" className="flex flex-col gap-3 py-2">
@@ -26,7 +26,7 @@ export function SkeletonRows({ rows = 6 }) {
   );
 }
 
-/* Empty state: explain + offer a next action (rule 9). */
+// empty state explains what happened and offers a next action
 export function EmptyState({ title, hint, actionLabel, onAction }) {
   return (
     <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line-2 px-6 py-10 text-center">
@@ -46,7 +46,7 @@ export function EmptyState({ title, hint, actionLabel, onAction }) {
   );
 }
 
-/* Error state: plain language + retry path (rule 9). */
+// error state in plain language with a retry button
 export function ErrorState({ error, onRetry }) {
   return (
     <div

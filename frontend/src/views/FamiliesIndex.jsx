@@ -40,7 +40,7 @@ export default function FamiliesIndex() {
                 Active malware families
               </h4>
               <span className="font-mono text-[10px] text-ink-3">
-                {ranked.length} in range · click → profile
+                {ranked.length} in range, click one to open its profile
               </span>
             </div>
             <div className="columns-1 gap-8 md:columns-2 xl:columns-3">

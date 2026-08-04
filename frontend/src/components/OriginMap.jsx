@@ -9,12 +9,10 @@ import {
 import { useRange } from "../lib/range";
 import { Skeleton } from "./states";
 
-/*
-  The overview hero: malicious-IP origins on a dotted world map.
-  Toggle between Volume (how many) and Confidence (how certain).
-*/
+// the overview hero, malicious ip origins on a dotted world map
+// toggles between volume (how many) and confidence (how certain)
 
-// build the world grid once — deterministic, ~2k dots
+// build the world grid once, it never changes
 const worldMap = new DottedMap({ height: 50, grid: "diagonal" });
 const WORLD_POINTS = worldMap.getPoints();
 const MAP_W = Math.max(...WORLD_POINTS.map((p) => p.x)) + 2;
@@ -34,8 +32,10 @@ export function OriginMap({ iocs }) {
   const ips = useMemo(() => extractIPs(iocs), [iocs]);
   const confByIp = useMemo(() => ipConfidenceMap(iocs), [iocs]);
   const geo = useGeo(ips);
+  // a disabled query never resolves, so track the no-ips case ourselves
+  const loading = ips.length > 0 && geo.isPending;
 
-  // activity sparkline for the side panel (approved layout)
+  // activity sparkline for the side panel
   const spark = useMemo(
     () => buildDailyChart(iocs, Math.max(days, 7)),
     [iocs, days],
@@ -48,7 +48,7 @@ export function OriginMap({ iocs }) {
     )
     .join(" ");
 
-  // aggregate per country: count, avg confidence, pin position
+  // group by country with count, average confidence, and pin position
   const origins = useMemo(() => {
     if (!geo.data) return [];
     const byCountry = {};
@@ -114,7 +114,7 @@ export function OriginMap({ iocs }) {
 
       <div className="grid gap-4 lg:grid-cols-[1fr_215px]">
         <div className="overflow-hidden rounded-lg border border-line bg-gradient-to-b from-surface-1 to-surface-2">
-          {geo.isPending ? (
+          {loading ? (
             <Skeleton className="h-[240px] w-full" />
           ) : (
             <svg
@@ -172,12 +172,14 @@ export function OriginMap({ iocs }) {
           <p className="mb-2 font-mono text-[9.5px] uppercase tracking-widest text-ink-3">
             Top origins
           </p>
-          {geo.isPending ? (
+          {loading ? (
             <div className="flex flex-col gap-2.5">
               {Array.from({ length: 5 }, (_, i) => (
                 <Skeleton key={i} className="h-3.5 w-full" />
               ))}
             </div>
+          ) : geo.isError ? (
+            <p className="text-xs text-ink-3">Geolocation is unavailable right now.</p>
           ) : top.length === 0 ? (
             <p className="text-xs text-ink-3">No ip:port IOCs in range.</p>
           ) : (

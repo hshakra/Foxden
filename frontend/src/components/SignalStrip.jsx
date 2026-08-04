@@ -2,19 +2,7 @@ import { useMemo } from "react";
 import { computeKpis, typeDistribution } from "../utils/processor";
 import { confidenceInfo } from "../lib/confidence";
 import { useRange } from "../lib/range";
-
-const TYPE_COLORS = {
-  "ip:port": "var(--color-t-ip)",
-  domain: "var(--color-t-domain)",
-  url: "var(--color-t-url)",
-  hash: "var(--color-t-hash)",
-};
-
-const CONF_COLORS = {
-  good: "var(--color-good)",
-  warn: "var(--color-warn)",
-  bad: "var(--color-bad)",
-};
+import { CONF_COLORS, typeColor } from "../lib/colors";
 
 function Kpi({ label, value, sub }) {
   return (
@@ -30,10 +18,8 @@ function Kpi({ label, value, sub }) {
   );
 }
 
-/*
-  The Shneiderman "overview" layer: every headline metric exactly once,
-  plus the type distribution as a stacked bar (data-ink over donut).
-*/
+// the top strip of the overview
+// every headline metric shows exactly once, plus the type distribution bar
 export function SignalStrip({ iocs }) {
   const { days } = useRange();
   const kpis = useMemo(() => computeKpis(iocs), [iocs]);
@@ -83,7 +69,7 @@ export function SignalStrip({ iocs }) {
               title={`${d.type} ${d.pct}%`}
               style={{
                 width: `${d.pct}%`,
-                background: TYPE_COLORS[d.type] ?? "var(--color-slate)",
+                background: typeColor(d.type),
               }}
             />
           ))}
@@ -94,7 +80,7 @@ export function SignalStrip({ iocs }) {
               <span
                 className="h-[7px] w-[7px] rounded-[2px]"
                 style={{
-                  background: TYPE_COLORS[d.type] ?? "var(--color-slate)",
+                  background: typeColor(d.type),
                 }}
               />
               {d.type} <b className="text-ink tabular-nums">{d.pct}%</b>

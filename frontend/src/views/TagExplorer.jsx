@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Tag } from "lucide-react";
 import useTag from "../hooks/useTag";
+import { isNoResult } from "../lib/api";
 import { TopBar } from "../components/TopBar";
 import { DetailHeader } from "../components/DetailHeader";
 import { FeedTable } from "../components/FeedTable";
@@ -22,6 +23,11 @@ export default function TagExplorer() {
       <div className="reveal flex flex-col gap-6 p-5">
         {tag.isPending ? (
           <SkeletonRows rows={8} />
+        ) : tag.isError && isNoResult(tag.error) ? (
+          <EmptyState
+            title="No IOCs carry this tag"
+            hint="ThreatFox has nothing under this tag right now."
+          />
         ) : tag.isError ? (
           <ErrorState error={tag.error} onRetry={() => tag.refetch()} />
         ) : iocs.length === 0 ? (

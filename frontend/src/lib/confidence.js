@@ -1,7 +1,5 @@
-/*
-  Confidence display: color + text label, never color alone (rule 4).
-  ThreatFox confidence_level is 0–100.
-*/
+// confidence is always shown as a color plus a text label, never color alone
+// threatfox confidence_level is 0 to 100
 export function confidenceInfo(level) {
   const n = Number(level) || 0;
   if (n >= 75) return { label: "HIGH", color: "good", value: n };

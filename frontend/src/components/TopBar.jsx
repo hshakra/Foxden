@@ -8,7 +8,7 @@ function Freshness() {
   const queryClient = useQueryClient();
   const [label, setLabel] = useState(null);
 
-  // recompute every second so "updated Xs ago" stays honest (rule 13)
+  // recompute every second so the label stays accurate
   useEffect(() => {
     function update() {
       const updatedAt = queryClient

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Shield } from "lucide-react";
 import useFamily from "../hooks/useFamily";
+import { isNoResult } from "../lib/api";
 import { TopBar } from "../components/TopBar";
 import { DetailHeader } from "../components/DetailHeader";
 import { FeedTable } from "../components/FeedTable";
@@ -22,6 +23,11 @@ export function FamilyProfile() {
       <div className="reveal flex flex-col gap-6 p-5">
         {family.isPending ? (
           <SkeletonRows rows={8} />
+        ) : family.isError && isNoResult(family.error) ? (
+          <EmptyState
+            title="No IOCs recorded for this family"
+            hint="ThreatFox has nothing under this name right now."
+          />
         ) : family.isError ? (
           <ErrorState error={family.error} onRetry={() => family.refetch()} />
         ) : iocs.length === 0 ? (

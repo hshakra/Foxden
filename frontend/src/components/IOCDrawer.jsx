@@ -4,10 +4,8 @@ import { useState } from "react";
 import { TypeBadge, ConfidenceCell } from "../views/IOCCard";
 import { timeAgo } from "../lib/time";
 
-/*
-  Details-on-demand, in place (rule 1): everything about one IOC
-  beside the feed — no navigation. Deep links out to VT / Malpedia / ThreatFox.
-*/
+// everything about one ioc, shown beside the feed with no navigation
+// deep links out to virustotal, malpedia, and threatfox
 
 function Row({ k, children }) {
   return (
@@ -36,7 +34,7 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily }) {
   const tfUrl = `https://threatfox.abuse.ch/ioc/${ioc.id}/`;
   const malpediaUrl =
     ioc.malware && !ioc.malware.startsWith("unknown")
-      ? `https://malpedia.caad.fkie.fraunhofer.de/details/${ioc.malware}`
+      ? `https://malpedia.caad.fkie.fraunhofer.de/details/${encodeURIComponent(ioc.malware)}`
       : null;
 
   return (
@@ -78,7 +76,7 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily }) {
           to={`/family/${encodeURIComponent(ioc.malware_printable)}`}
           className="text-accent-soft hover:underline"
         >
-          {ioc.malware_printable} →
+          {ioc.malware_printable}
         </Link>
       </Row>
       <Row k="Threat">{ioc.threat_type_label ?? ioc.threat_type}</Row>

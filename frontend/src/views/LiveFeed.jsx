@@ -9,10 +9,8 @@ import { IOCDrawer } from "../components/IOCDrawer";
 import { TopFamilies } from "./TopFamilies.jsx";
 import { TopTags } from "./TopTags.jsx";
 
-/*
-  The Overview screen, per Shneiderman: overview strip → map hero →
-  filterable feed with an in-place detail drawer. No dead ends.
-*/
+// the overview screen
+// signal strip, then the map, then the feed with its detail drawer
 export default function LiveFeed() {
   const recent = useRecentIOCs();
   const [selected, setSelected] = useState(null);

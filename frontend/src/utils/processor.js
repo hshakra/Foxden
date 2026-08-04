@@ -81,12 +81,12 @@ export function rankTags(iocs) {
   //iocs
   for (let a = 0; a < iocs.length; a++) {
     // tags per ioc
-    let fMapOfTags = iocs[a].tags?.flatMap((t) => t) || [];
-    for (let x = 0; x < fMapOfTags.length; x++) {
-      if (fMapOfTags[x] in tagsRank) {
-        tagsRank[fMapOfTags[x]]++;
+    const tags = iocs[a].tags || [];
+    for (let x = 0; x < tags.length; x++) {
+      if (tags[x] in tagsRank) {
+        tagsRank[tags[x]]++;
       } else {
-        tagsRank[fMapOfTags[x]] = 1;
+        tagsRank[tags[x]] = 1;
       }
     }
   }
@@ -98,7 +98,7 @@ export function rankTags(iocs) {
 }
 
 export function sortRecentStream(iocs) {
-  // full sorted stream — the feed virtualizes, so no slice
+  // full sorted stream, the feed virtualizes so no slice needed
   return [...iocs]
     .sort((a, b) => b.first_seen.localeCompare(a.first_seen))
     .map((ioc) => ({
@@ -107,7 +107,7 @@ export function sortRecentStream(iocs) {
     }));
 }
 
-// KPI numbers for the signal strip — each metric computed once
+// kpi numbers for the signal strip, each metric computed once
 export function computeKpis(iocs) {
   const families = new Set();
   const tags = new Set();
@@ -128,7 +128,7 @@ export function computeKpis(iocs) {
   };
 }
 
-// stacked distribution for the signal strip; hash variants merge into "hash"
+// stacked distribution for the signal strip, hash variants merge into one
 export function typeDistribution(iocs) {
   const counts = {};
   for (let a = 0; a < iocs.length; a++) {

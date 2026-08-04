@@ -1,10 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 
-/*
-  Geolocate the feed's ip:port IOCs. The backend caches lookups,
-  so re-queries on range change are cheap.
-*/
+// geolocate the feed's ip:port iocs
+// the backend caches lookups so range changes are cheap
 export default function useGeo(ips) {
   return useQuery({
     queryKey: ["geo", ips],

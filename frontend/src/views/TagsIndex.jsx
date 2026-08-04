@@ -38,7 +38,7 @@ export default function TagsIndex() {
             <div className="mb-3 flex items-baseline gap-2.5">
               <h4 className="text-[13px] font-semibold">Campaign tags</h4>
               <span className="font-mono text-[10px] text-ink-3">
-                {ranked.length} in range · click → explore
+                {ranked.length} in range, click one to explore it
               </span>
             </div>
             <div className="flex flex-wrap gap-2">

@@ -1,14 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
 import { api } from "../lib/api";
 import { IOCCard } from "../views/IOCCard";
 import { SkeletonRows, EmptyState, ErrorState } from "./states";
 
-/*
-  Global IOC lookup in a focused modal (design note: modals for actions).
-  Paste any IP, domain, URL, or hash → instant ThreatFox result.
-*/
+// global ioc lookup in a small modal
+// paste any ip, domain, url, or hash and get the threatfox record
 export function LookupModal({ open, onClose }) {
   const [term, setTerm] = useState("");
   const [submitted, setSubmitted] = useState("");
@@ -23,21 +21,21 @@ export function LookupModal({ open, onClose }) {
   });
 
   // reset on the way out so each open starts fresh
-  function close() {
+  const close = useCallback(() => {
     setTerm("");
     setSubmitted("");
     onClose();
-  }
+  }, [onClose]);
 
   useEffect(() => {
     function onKeyDown(e) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") close();
     }
     if (open) {
       window.addEventListener("keydown", onKeyDown);
       return () => window.removeEventListener("keydown", onKeyDown);
     }
-  }, [open, onClose]);
+  }, [open, close]);
 
   if (!open) return null;
 
@@ -86,13 +84,18 @@ export function LookupModal({ open, onClose }) {
 
         {submitted && (
           <div className="mt-3 border-t border-line pt-3">
-            {result.isPending ? (
+            {submitted.length <= 2 ? (
+              <EmptyState
+                title="That search is too short"
+                hint="Enter at least 3 characters."
+              />
+            ) : result.isPending ? (
               <SkeletonRows rows={3} />
             ) : result.isError ? (
               result.error.message.includes("no_result") ? (
                 <EmptyState
                   title="No ThreatFox record for that indicator"
-                  hint="That can be good news — it isn't in the abuse.ch corpus."
+                  hint="That can be good news, it is not in the abuse.ch database."
                 />
               ) : (
                 <ErrorState error={result.error} onRetry={() => result.refetch()} />
@@ -100,7 +103,7 @@ export function LookupModal({ open, onClose }) {
             ) : result.data.length === 0 ? (
               <EmptyState
                 title="No ThreatFox record for that indicator"
-                hint="That can be good news — it isn't in the abuse.ch corpus."
+                hint="That can be good news, it is not in the abuse.ch database."
               />
             ) : (
               <div>

@@ -1,0 +1,16 @@
+# Render blueprint for the Foxden backend.
+# The frontend deploys separately (Vercel/Netlify) with VITE_API_BASE_URL
+# pointing at this service's URL.
+services:
+  - type: web
+    name: foxden-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    # proxy-headers makes the rate limiter see real client IPs
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --proxy-headers
+    envVars:
+      - key: THREATFOX_API_KEY
+        sync: false # set in the Render dashboard
+      - key: ALLOWED_ORIGINS
+        sync: false # your deployed frontend origin

@@ -3,11 +3,11 @@
 @import "@fontsource-variable/martian-mono";
 
 /*
-  Foxden design tokens — the single source of visual truth.
-  See DESIGN.md for the rules. Change values here, never inline.
+  foxden design tokens, the single source of visual truth
+  see DESIGN.md for the rules, change values here and never inline
 */
 @theme {
-  /* surface ramp — elevation = lighter, never pure black */
+  /* surface ramp, higher elevation means a lighter surface, never pure black */
   --color-surface-0: #0e1014;
   --color-surface-1: #161a21;
   --color-surface-2: #1d232d;
@@ -20,7 +20,7 @@
   --color-ink-2: #99a0a8;
   --color-ink-3: #6b7380;
 
-  /* brand — glaucous is the one accent */
+  /* brand colors, glaucous is the only accent */
   --color-accent: #7180b9;
   --color-accent-soft: #aeb8dc;
   --color-sage: #c2c6ae;
@@ -32,7 +32,7 @@
   --color-t-url: #c2c6ae;
   --color-t-hash: #7e8aa0;
 
-  /* status — only on status, always with a text label */
+  /* status colors, used only for status and always with a text label */
   --color-good: #3ddc84;
   --color-warn: #ffb020;
   --color-bad: #ff5470;
@@ -53,7 +53,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* content-shaped loading shimmer (rule 9) */
+/* loading shimmer shaped like the real content */
 .skeleton {
   background: linear-gradient(
     90deg,
@@ -79,7 +79,7 @@ body {
   100% { box-shadow: 0 0 0 0 rgb(61 220 132 / 0); }
 }
 
-/* one orchestrated load reveal (rule 14) — reduced-motion rule above disables it */
+/* single fade in on page load, the reduced motion rule below disables it */
 .reveal {
   animation: reveal 0.35s ease-out both;
 }
@@ -88,7 +88,7 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* quiet, console-appropriate scrollbars */
+/* thin dark scrollbars */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-line-2) transparent;
@@ -105,7 +105,7 @@ body {
   background: transparent;
 }
 
-/* visible keyboard focus everywhere (rule 15) */
+/* visible keyboard focus everywhere */
 :focus-visible {
   outline: 2px solid var(--color-accent-soft);
   outline-offset: 2px;

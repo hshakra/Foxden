@@ -85,16 +85,30 @@ export function FacetRail({
       Object.entries(obj)
         .sort((a, b) => b[1] - a[1])
         .slice(0, limit);
+    // an active filter must stay visible and clearable even when its
+    // value falls outside the ranked rows, so append it at the end
+    const countryRows = Object.entries(countries)
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 6);
+    for (const code of countryFilter) {
+      if (!countryRows.some(([c]) => c === code)) {
+        countryRows.push([code, countries[code] ?? { name: code, count: 0 }]);
+      }
+    }
+    const portRows = rank(ports, 6);
+    for (const port of portFilter) {
+      if (!portRows.some(([p]) => p === port)) {
+        portRows.push([port, ports[port] ?? 0]);
+      }
+    }
     return {
       types: rank(types, 4),
       threats: rank(threats, 5),
       families: rank(families, 7),
-      countries: Object.entries(countries)
-        .sort((a, b) => b[1].count - a[1].count)
-        .slice(0, 6),
-      ports: rank(ports, 6),
+      countries: countryRows,
+      ports: portRows,
     };
-  }, [iocs, geoByIp]);
+  }, [iocs, geoByIp, countryFilter, portFilter]);
 
   function toggle(list, value, set) {
     set(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);

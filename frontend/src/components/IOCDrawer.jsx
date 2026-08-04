@@ -1,12 +1,14 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Copy, Check, ExternalLink, X } from "lucide-react";
-import { TypeBadge } from "../views/IOCCard";
+import { ExternalLink, X } from "lucide-react";
+import { TypeBadge } from "./IOCCard";
 import { confidenceInfo } from "../lib/confidence";
 import { CONF_COLORS, THREAT_LABELS } from "../lib/colors";
 import { timeAgo } from "../lib/time";
 import { midEllipsis } from "../lib/format";
 import { Chip } from "./ui/Chip";
+import { CopyButton } from "./ui/CopyButton";
+import { PORT_NAMES } from "../lib/ports";
 
 // everything about one ioc, shown beside the feed with no navigation
 // verdict first, then only the evidence rows that actually have data,
@@ -23,9 +25,7 @@ function Row({ k, children }) {
   );
 }
 
-export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
-  const [copied, setCopied] = useState(false);
-
+export function IOCDrawer({ ioc, onClose, onFamilyFilterChange, onNavigate, pool }) {
   // same family, most recent first, to keep the pivot going
   const related = useMemo(() => {
     if (!pool || !ioc) return [];
@@ -42,12 +42,8 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
   if (!ioc) return null;
   const conf = confidenceInfo(ioc.confidence_level);
   const confColor = CONF_COLORS[conf.tone];
-
-  async function copyValue() {
-    await navigator.clipboard.writeText(ioc.ioc);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
-  }
+  const port =
+    ioc.ioc_type === "ip:port" ? ioc.ioc.slice(ioc.ioc.lastIndexOf(":") + 1) : null;
 
   const vtUrl = `https://www.virustotal.com/gui/search/${encodeURIComponent(ioc.ioc)}`;
   const tfUrl = `https://threatfox.abuse.ch/ioc/${ioc.id}/`;
@@ -86,18 +82,12 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
         >
           {midEllipsis(ioc.ioc, 56)}
         </code>
-        <button
-          type="button"
-          onClick={copyValue}
-          aria-label="Copy IOC value"
+        <CopyButton
+          value={ioc.ioc}
+          size={13}
+          label="Copy IOC value"
           className="grid h-6 w-6 shrink-0 place-content-center rounded-md border border-line text-ink-low transition-colors duration-150 hover:border-line-strong hover:text-ink"
-        >
-          {copied ? (
-            <Check size={13} className="text-accent-soft" />
-          ) : (
-            <Copy size={13} />
-          )}
-        </button>
+        />
       </div>
 
       {/* verdict band answers how bad and how sure before anything else */}
@@ -117,7 +107,7 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
           Confidence {conf.value}
         </span>
         <span className="ml-auto text-meta text-ink-mid">
-          {THREAT_LABELS[ioc.threat_type] ?? ioc.threat_type}
+          used for {THREAT_LABELS[ioc.threat_type] ?? ioc.threat_type}
         </span>
       </div>
 
@@ -134,6 +124,12 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
         <Row k="First seen">
           {ioc.first_seen.replace(" UTC", "")} UTC, {timeAgo(ioc.first_seen)}{" "}
           ago
+        </Row>
+      )}
+      {port && (
+        <Row k="Port">
+          {port}
+          {PORT_NAMES[port] ? ` ${PORT_NAMES[port]}` : ""}
         </Row>
       )}
       {ioc.reporter && <Row k="Reporter">{ioc.reporter}</Row>}
@@ -191,10 +187,10 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
       )}
 
       <div className="mt-3 flex flex-wrap gap-1.5">
-        {onFilterFamily && (
+        {onFamilyFilterChange && (
           <button
             type="button"
-            onClick={() => onFilterFamily(ioc.malware_printable)}
+            onClick={() => onFamilyFilterChange(ioc.malware_printable)}
             className="rounded-md bg-accent px-2.5 py-1.5 text-secondary font-medium text-white transition-colors duration-150 hover:bg-accent/85"
           >
             Filter feed to family

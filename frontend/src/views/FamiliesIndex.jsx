@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, ArrowUpDown } from "lucide-react";
-import useRecentIOCs from "../hooks/useRecentIOCS.js";
+import useRecentIOCs from "../hooks/useRecentIOCs";
 import { TopBar } from "../components/TopBar";
 import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
 import {

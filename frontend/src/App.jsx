@@ -1,9 +1,9 @@
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import { AppShell } from "./components/AppShell";
-import { RangeProvider } from "./lib/RangeContext";
+import { RangeProvider } from "./lib/RangeProvider";
 import LiveFeed from "./views/LiveFeed";
 import TagExplorer from "./views/TagExplorer";
-import { FamilyProfile } from "./views/FamilyProfile";
+import FamilyProfile from "./views/FamilyProfile";
 import FamiliesIndex from "./views/FamiliesIndex";
 import IOCBrowse from "./views/IOCBrowse";
 import TagsIndex from "./views/TagsIndex";

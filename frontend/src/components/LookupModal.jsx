@@ -1,18 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Search,
-  X,
-  Shield,
-  Tag,
-  CornerDownLeft,
-  Copy,
-  Check,
-} from "lucide-react";
-import { api } from "../lib/api";
-import useRecentIOCs from "../hooks/useRecentIOCS";
+import { Search, X, Shield, Tag, CornerDownLeft } from "lucide-react";
+import { api, isNoResult } from "../lib/api";
+import useRecentIOCs from "../hooks/useRecentIOCs";
 import { usePrefetchFamily } from "../hooks/useFamily";
-import { TypeBadge } from "../views/IOCCard";
+import { TypeBadge } from "./IOCCard";
 import { IOCDrawer } from "./IOCDrawer";
 import { SkeletonRows, EmptyState, ErrorState } from "./states";
 import { confidenceInfo } from "../lib/confidence";
@@ -21,6 +13,7 @@ import { timeAgo } from "../lib/time";
 import { midEllipsis } from "../lib/format";
 import { Chip } from "./ui/Chip";
 import { Badge } from "./ui/Badge";
+import { CopyButton } from "./ui/CopyButton";
 
 // global lookup that answers while you type
 // every keystroke matches families, tags, and iocs already in range
@@ -82,17 +75,9 @@ function SectionLabel({ children }) {
 
 // compact result row built for the modal, the copy button owns its column
 function LookupRow({ ioc, selected, highlighted, onSelect }) {
-  const [copied, setCopied] = useState(false);
   const conf = confidenceInfo(ioc.confidence_level);
   const confColor = CONF_COLORS[conf.tone];
   const isHash = ioc.ioc_type?.endsWith("_hash");
-
-  async function copyValue(e) {
-    e.stopPropagation();
-    await navigator.clipboard.writeText(ioc.ioc);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
-  }
 
   return (
     <div
@@ -122,18 +107,11 @@ function LookupRow({ ioc, selected, highlighted, onSelect }) {
       <span className="shrink-0 font-mono text-meta text-ink-low tabular-nums">
         {timeAgo(ioc.first_seen)}
       </span>
-      <button
-        type="button"
-        onClick={copyValue}
-        aria-label="Copy IOC value"
+      <CopyButton
+        value={ioc.ioc}
+        label="Copy IOC value"
         className="grid h-6 w-6 shrink-0 place-content-center rounded-md border border-line text-ink-low transition-colors duration-150 hover:border-line-strong hover:text-ink"
-      >
-        {copied ? (
-          <Check size={12} className="text-accent-soft" />
-        ) : (
-          <Copy size={12} />
-        )}
-      </button>
+      />
     </div>
   );
 }
@@ -374,7 +352,7 @@ export function LookupModal({ open, onClose }) {
             ) : result.isPending ? (
               <SkeletonRows rows={3} />
             ) : result.isError ? (
-              result.error.message.includes("no_result") ? (
+              isNoResult(result.error) ? (
                 <EmptyState
                   title="No ThreatFox record for that indicator"
                   hint="That can be good news, it is not in the abuse.ch database."

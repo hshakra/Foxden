@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
-import { Copy, Check, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { ChevronRight } from "lucide-react";
 import { timeAgo } from "../lib/time";
 import { confidenceInfo } from "../lib/confidence";
 import { CONF_COLORS, typeColor } from "../lib/colors";
 import { midEllipsis } from "../lib/format";
-import { Badge } from "../components/ui/Badge";
+import { Badge } from "./ui/Badge";
+import { CopyButton } from "./ui/CopyButton";
 
 const TYPE_LABELS = {
   md5_hash: "md5",
@@ -59,15 +59,7 @@ export function ConfidenceCell({ level }) {
 // type badge, mono value with copy, family, confidence, time ago, chevron
 // the family cell drops out on pages that are already about one family
 export function IOCCard({ ioc, selected, onSelect, onFamilyClick, showFamily = true }) {
-  const [copied, setCopied] = useState(false);
   const isHash = HASH_TYPES.has(ioc.ioc_type);
-
-  async function copyValue(e) {
-    e.stopPropagation();
-    await navigator.clipboard.writeText(ioc.ioc);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
-  }
 
   return (
     <div
@@ -94,20 +86,11 @@ export function IOCCard({ ioc, selected, onSelect, onFamilyClick, showFamily = t
         >
           {isHash ? midEllipsis(ioc.ioc, 36) : ioc.ioc}
         </span>
-        <button
-          type="button"
-          onClick={copyValue}
-          aria-label="Copy IOC value"
-          className={`shrink-0 text-ink-low transition-opacity hover:text-ink ${
-            copied ? "" : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-          }`}
-        >
-          {copied ? (
-            <Check size={12} className="text-accent-soft" />
-          ) : (
-            <Copy size={12} />
-          )}
-        </button>
+        <CopyButton
+          value={ioc.ioc}
+          label="Copy IOC value"
+          className="shrink-0 text-ink-low transition-opacity hover:text-ink opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+        />
       </span>
 
       {showFamily &&

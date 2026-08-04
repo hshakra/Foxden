@@ -1,6 +1,6 @@
 {
-  "venvPath": "/Users/husam/personal/Foxden/frontend",
+  "venvPath": "backend",
   "venv": "venv",
   "pythonVersion": "3.13",
-  "include": ["frontend"]
+  "include": ["backend"]
 }

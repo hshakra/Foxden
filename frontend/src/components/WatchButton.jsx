@@ -2,6 +2,7 @@ import { Star } from "lucide-react";
 import { useWatchlist, toggleWatch } from "../lib/watchlist";
 
 // pin a family or tag to the overview watchlist
+// derives from the subscribed list so it re-renders on toggle
 export function WatchButton({ kind, name }) {
   const watchlist = useWatchlist();
   const watched = watchlist.some((w) => w.kind === kind && w.name === name);

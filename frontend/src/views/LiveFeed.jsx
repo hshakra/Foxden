@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
-import useRecentIOCs from "../hooks/useRecentIOCS.js";
+import useRecentIOCs from "../hooks/useRecentIOCs";
 import useFrozenFeed from "../hooks/useFrozenFeed";
 import useLastVisit from "../hooks/useLastVisit";
 import { Watchlist } from "../components/Watchlist";
@@ -15,9 +15,9 @@ import { OriginMap } from "../components/OriginMap";
 import { FeedTable } from "../components/FeedTable";
 import { IOCDrawer } from "../components/IOCDrawer";
 import { Group } from "../components/ui/Group";
-import { TopFamilies } from "./TopFamilies.jsx";
-import { TopTags } from "./TopTags.jsx";
-import { TopPorts } from "./TopPorts.jsx";
+import { TopFamilies } from "../components/TopFamilies";
+import { TopTags } from "../components/TopTags";
+import { TopPorts } from "../components/TopPorts";
 
 function scrollToFeed() {
   document.getElementById("ioc-feed")?.scrollIntoView({ behavior: "smooth" });
@@ -167,7 +167,7 @@ export default function LiveFeed() {
                 <IOCDrawer
                   ioc={selected}
                   onClose={() => handleSelect(null)}
-                  onFilterFamily={(family) => setFamilyFilter(family)}
+                  onFamilyFilterChange={(family) => setFamilyFilter(family)}
                   pool={iocs}
                 />
               )}

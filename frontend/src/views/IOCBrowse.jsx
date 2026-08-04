@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import useRecentIOCs from "../hooks/useRecentIOCS.js";
+import useRecentIOCs from "../hooks/useRecentIOCs";
 import { TopBar } from "../components/TopBar";
 import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
 import { FacetRail } from "../components/FacetRail";
@@ -64,7 +64,7 @@ export default function IOCBrowse() {
               <IOCDrawer
                 ioc={selected}
                 onClose={() => setSelected(null)}
-                onFilterFamily={(family) => setFamilyFilter(family)}
+                onFamilyFilterChange={(family) => setFamilyFilter(family)}
                 pool={iocs}
               />
             )}

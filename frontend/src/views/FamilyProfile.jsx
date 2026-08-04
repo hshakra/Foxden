@@ -6,10 +6,10 @@ import { TopBar } from "../components/TopBar";
 import { DetailHeader } from "../components/DetailHeader";
 import { FeedTable } from "../components/FeedTable";
 import { IOCDrawer } from "../components/IOCDrawer";
-import { TopTags } from "./TopTags.jsx";
+import { TopTags } from "../components/TopTags";
 import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
 
-export function FamilyProfile() {
+export default function FamilyProfile() {
   const { name } = useParams();
   const family = useFamily(name);
   const [selected, setSelected] = useState(null);

@@ -1,5 +1,4 @@
 import { RefreshCw, SearchX } from "lucide-react";
-import { Chip } from "./ui/Chip";
 
 // loading placeholder shaped like the real content, no generic spinners
 export function Skeleton({ className = "" }) {
@@ -28,22 +27,12 @@ export function SkeletonRows({ rows = 6 }) {
 }
 
 // empty state explains what happened and offers a next step
-// pass examples to teach on first run, pass an action to clear a filter
-export function EmptyState({ icon: Icon = SearchX, title, hint, actionLabel, onAction, examples }) {
+export function EmptyState({ icon: Icon = SearchX, title, hint, actionLabel, onAction }) {
   return (
     <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-line-strong px-6 py-10 text-center">
       <Icon size={20} className="text-ink-low" />
       <p className="text-body font-medium">{title}</p>
       {hint && <p className="text-secondary text-ink-mid">{hint}</p>}
-      {examples?.length > 0 && (
-        <div className="mt-2 flex flex-wrap justify-center gap-2">
-          {examples.map((ex) => (
-            <Chip key={ex.label} onClick={ex.onClick}>
-              {ex.label}
-            </Chip>
-          ))}
-        </div>
-      )}
       {actionLabel && (
         <button
           type="button"

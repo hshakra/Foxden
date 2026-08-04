@@ -3,7 +3,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChevronRight, ChevronDown, Download, Search } from "lucide-react";
 import { sortRecentStream, normalizeType } from "../lib/processor";
 import { THREAT_LABELS } from "../lib/colors";
-import { IOCCard } from "../views/IOCCard";
+import { IOCCard } from "./IOCCard";
 import { EmptyState } from "./states";
 import { Group } from "./ui/Group";
 import { Menu, MenuItem } from "./ui/Menu";

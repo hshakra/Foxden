@@ -6,7 +6,7 @@ import { TopBar } from "../components/TopBar";
 import { DetailHeader } from "../components/DetailHeader";
 import { FeedTable } from "../components/FeedTable";
 import { IOCDrawer } from "../components/IOCDrawer";
-import { TopFamilies } from "./TopFamilies.jsx";
+import { TopFamilies } from "../components/TopFamilies";
 import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
 
 export default function TagExplorer() {

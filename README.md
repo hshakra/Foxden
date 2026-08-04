@@ -12,7 +12,7 @@ Foxden takes the raw ThreatFox stream of IOCs (indicators of compromise, meaning
 - Signal strip with the headline numbers and the IOC type breakdown for the selected range (24h, 3d, or 7d)
 - Origin map that shades each country by how many malicious IPs sit there, with a toggle between volume and confidence
 - Live IOC feed, newest first, showing 100 at a time with dropdown filters for type, confidence, and family. Bursts from one family collapse into an expandable row and the filtered list exports to CSV
-- Click any IOC and a detail panel opens next to the feed with copy, tags, and links out to VirusTotal, Malpedia, and ThreatFox
+- Click any IOC and a detail panel opens next to the feed with copy, tags, and links out to VirusTotal, MalwareBazaar, and ThreatFox
 - Family and tag pages you can share, with stats, an activity sparkline, and that entity's IOCs
 - Press / anywhere to look up any IP, domain, URL, or hash
 - Keyboard support in the feed: j and k to move, enter to open, esc to close
@@ -21,7 +21,7 @@ Foxden takes the raw ThreatFox stream of IOCs (indicators of compromise, meaning
 
 ## Stack
 
-Frontend: React 19, Vite, Tailwind v4, TanStack Query, Recharts, d3-geo.
+Frontend: React 19, Vite, Tailwind v4, TanStack Query, d3-geo, d3-hierarchy.
 Backend: FastAPI. A small proxy that keeps the ThreatFox key on the server, validates input, and caches responses.
 Type: Schibsted Grotesk for the interface, Martian Mono for all data values.
 Data: ThreatFox API from abuse.ch, plus ip-api.com for geolocation.

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { typeDistribution, threatDistribution } from "../utils/processor";
+import { typeDistribution, threatDistribution } from "../lib/processor";
 import { typeColor, threatColor, THREAT_LABELS } from "../lib/colors";
 
 // the two distribution bars of the overview, what kind and what for

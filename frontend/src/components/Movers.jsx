@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { buildDailyChart } from "../utils/processor";
+import { buildDailyChart, groupByFamily } from "../lib/processor";
 import { usePrefetchFamily } from "../hooks/useFamily";
 import { useRange } from "../lib/range";
 import { sparkRange } from "../lib/chartLabels";
@@ -19,12 +19,8 @@ export function Movers({ iocs, previous = [] }) {
 
   const spikes = useMemo(() => {
     if (days === 1) return [];
-    const byFamily = {};
-    for (const ioc of iocs) {
-      (byFamily[ioc.malware_printable] ??= []).push(ioc);
-    }
     const out = [];
-    for (const [name, list] of Object.entries(byFamily)) {
+    for (const [name, list] of Object.entries(groupByFamily(iocs))) {
       const daily = buildDailyChart(list, days);
       const today = daily[daily.length - 1].count;
       if (today < MIN_TODAY) continue;

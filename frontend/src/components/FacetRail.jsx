@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { typeColor, threatColor, THREAT_LABELS } from "../lib/colors";
+import { normalizeType } from "../lib/processor";
 
 // the browse page sidebar, every facet row is a live count and a filter
 // clicking toggles, the active row highlights
@@ -52,7 +53,7 @@ export function FacetRail({
     const threats = {};
     const families = {};
     for (const ioc of iocs) {
-      const t = ioc.ioc_type.endsWith("_hash") ? "hash" : ioc.ioc_type;
+      const t = normalizeType(ioc.ioc_type);
       types[t] = (types[t] || 0) + 1;
       threats[ioc.threat_type] = (threats[ioc.threat_type] || 0) + 1;
       families[ioc.malware_printable] =

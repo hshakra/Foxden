@@ -26,6 +26,13 @@ export default function TagsIndex() {
   const [sort, setSort] = useState({ key: "count", dir: -1 });
   const [limit, setLimit] = useState(PAGE);
 
+  // reset paging when the visible set changes shape, adjusted during render
+  const [prevShape, setPrevShape] = useState({ search, sort });
+  if (prevShape.search !== search || prevShape.sort !== sort) {
+    setPrevShape({ search, sort });
+    setLimit(PAGE);
+  }
+
   const iocs = recent.data?.current;
 
   const rows = useMemo(() => {
@@ -81,8 +88,11 @@ export default function TagsIndex() {
   }, [rows, iocs]);
 
   function toggleSort(key) {
+    // text columns read naturally ascending, numbers biggest first
     setSort((prev) =>
-      prev.key === key ? { key, dir: -prev.dir } : { key, dir: -1 },
+      prev.key === key
+        ? { key, dir: -prev.dir }
+        : { key, dir: key === "tag" || key === "topFamily" ? 1 : -1 },
     );
   }
 

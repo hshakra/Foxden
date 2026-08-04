@@ -12,6 +12,7 @@ export default function useRecentIOCs() {
   return useQuery({
     queryKey: ["recentIOCs", fetchDays, days],
     queryFn: () => api.recent(fetchDays),
+    refetchInterval: 5 * 60 * 1000, // keeps the feed live
     placeholderData: (prev) => prev,
     select: (data) => {
       const all = data.data ?? [];

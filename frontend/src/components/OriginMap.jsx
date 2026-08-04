@@ -8,7 +8,7 @@ import {
   extractIPs,
   ipConfidenceMap,
   buildActivitySeries,
-} from "../utils/processor";
+} from "../lib/processor";
 import { CONF_COLORS } from "../lib/colors";
 import { Sparkline } from "./charts/Sparkline";
 import { useRange } from "../lib/range";

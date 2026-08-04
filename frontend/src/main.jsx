@@ -10,7 +10,6 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60 * 1000,
-      refetchInterval: 5 * 60 * 1000, // keeps the feed live
       // no_result is a real answer, retrying it is pointless
       retry: (failureCount, error) => !isNoResult(error) && failureCount < 2,
     },

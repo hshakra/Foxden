@@ -33,10 +33,10 @@ export default function IOCBrowse() {
           />
         ) : (
           <div
-            className={`grid items-start gap-4 lg:grid-cols-[210px_minmax(0,1fr)] ${
+            className={`grid items-start gap-4 ${
               selected
-                ? "xl:grid-cols-[210px_minmax(0,1fr)_300px]"
-                : "xl:grid-cols-[210px_minmax(0,1fr)]"
+                ? "lg:grid-cols-[210px_minmax(0,1fr)_280px] xl:grid-cols-[210px_minmax(0,1fr)_300px]"
+                : "lg:grid-cols-[210px_minmax(0,1fr)]"
             }`}
           >
             <FacetRail

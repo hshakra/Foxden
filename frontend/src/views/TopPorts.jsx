@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { topPorts } from "../utils/processor";
+import { topPorts } from "../lib/processor";
 import { PORT_NAMES } from "../lib/ports";
 import { Group } from "../components/ui/Group";
 

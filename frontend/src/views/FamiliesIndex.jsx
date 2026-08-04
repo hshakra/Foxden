@@ -4,7 +4,13 @@ import { Search, ArrowUpDown } from "lucide-react";
 import useRecentIOCs from "../hooks/useRecentIOCS.js";
 import { TopBar } from "../components/TopBar";
 import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
-import { buildDailyChart, computeKpis, newFamilies } from "../utils/processor";
+import {
+  buildDailyChart,
+  computeKpis,
+  newFamilies,
+  groupByFamily,
+  familyTypeMix,
+} from "../lib/processor";
 import { confidenceInfo } from "../lib/confidence";
 import { CONF_COLORS, typeColor } from "../lib/colors";
 import { parseThreatFoxDate, timeAgo } from "../lib/time";
@@ -30,27 +36,30 @@ const COLUMNS = [
   { key: "lastSeen", label: "Last seen", sortable: true, right: true },
 ];
 
+const PAGE = 50;
+
 export default function FamiliesIndex() {
   const recent = useRecentIOCs();
   const { days } = useRange();
   const prefetchFamily = usePrefetchFamily();
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "count", dir: -1 });
+  const [limit, setLimit] = useState(PAGE);
+
+  // reset paging when the visible set changes shape, adjusted during render
+  const [prevShape, setPrevShape] = useState({ search, sort });
+  if (prevShape.search !== search || prevShape.sort !== sort) {
+    setPrevShape({ search, sort });
+    setLimit(PAGE);
+  }
 
   const iocs = recent.data?.current;
   const previous = recent.data?.previous;
 
   const rows = useMemo(() => {
-    const byFamily = {};
-    for (const ioc of iocs ?? []) {
-      (byFamily[ioc.malware_printable] ??= []).push(ioc);
-    }
-    return Object.entries(byFamily).map(([name, list]) => {
-      const typeCounts = {};
+    return Object.entries(groupByFamily(iocs ?? [])).map(([name, list]) => {
       let lastSeen = 0;
       for (const ioc of list) {
-        const t = ioc.ioc_type.endsWith("_hash") ? "hash" : ioc.ioc_type;
-        typeCounts[t] = (typeCounts[t] || 0) + 1;
         const seen = parseThreatFoxDate(ioc.first_seen)?.getTime() ?? 0;
         if (seen > lastSeen) lastSeen = seen;
       }
@@ -59,10 +68,7 @@ export default function FamiliesIndex() {
         count: list.length,
         conf: computeKpis(list).avgConfidence,
         spark: buildDailyChart(list, Math.max(days, 7)),
-        mix: Object.entries(typeCounts).map(([type, count]) => ({
-          type,
-          pct: Math.round((count / list.length) * 100),
-        })),
+        mix: familyTypeMix(list),
         lastSeen,
       };
     });
@@ -93,8 +99,11 @@ export default function FamiliesIndex() {
   }, [rows, search, sort]);
 
   function toggleSort(key) {
+    // text columns read naturally ascending, numbers biggest first
     setSort((prev) =>
-      prev.key === key ? { key, dir: -prev.dir } : { key, dir: -1 },
+      prev.key === key
+        ? { key, dir: -prev.dir }
+        : { key, dir: key === "name" ? 1 : -1 },
     );
   }
 
@@ -194,7 +203,7 @@ export default function FamiliesIndex() {
                     ))}
                   </div>
 
-                  {shown.map((r) => {
+                  {shown.slice(0, limit).map((r) => {
                     const conf = confidenceInfo(r.conf);
                     return (
                       <Link
@@ -240,11 +249,22 @@ export default function FamiliesIndex() {
                           ))}
                         </span>
                         <span className="text-right font-mono text-meta text-ink-low tabular-nums">
-                          {timeAgo(new Date(r.lastSeen))}
+                          {r.lastSeen ? timeAgo(new Date(r.lastSeen)) : "–"}
                         </span>
                       </Link>
                     );
                   })}
+
+                  {shown.length > limit && (
+                    <button
+                      type="button"
+                      onClick={() => setLimit((n) => n + PAGE)}
+                      className="mt-2 w-full rounded-md border border-dashed border-line-strong py-2 text-secondary text-ink-mid transition-colors duration-150 hover:border-accent/50 hover:text-ink"
+                    >
+                      Show {Math.min(PAGE, shown.length - limit)} more,{" "}
+                      {shown.length - limit} remaining
+                    </button>
+                  )}
                 </div>
               </div>
             </Group>

@@ -30,7 +30,7 @@ function scrollToFeed() {
 export default function LiveFeed() {
   const recent = useRecentIOCs();
   const { days } = useRange();
-  const frozen = useFrozenFeed(recent.data, days);
+  const frozen = useFrozenFeed(recent.data, `${days}:${recent.isPlaceholderData}`);
   const [selected, setSelected] = useState(null);
   const [familyFilter, setFamilyFilter] = useState(null);
   const [typeFilter, setTypeFilter] = useState([]);

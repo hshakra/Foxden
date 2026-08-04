@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { rankTags } from "../utils/processor";
+import { rankTags } from "../lib/processor";
 import { usePrefetchTag } from "../hooks/useTag";
 import { Group } from "../components/ui/Group";
 

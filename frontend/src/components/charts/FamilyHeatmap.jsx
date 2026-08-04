@@ -1,6 +1,10 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { buildDailyChart, buildHourlyChart } from "../../utils/processor";
+import {
+  buildDailyChart,
+  buildHourlyChart,
+  groupByFamily,
+} from "../../lib/processor";
 import { shortLabel } from "../../lib/chartLabels";
 import { usePrefetchFamily } from "../../hooks/useFamily";
 import { useRange } from "../../lib/range";
@@ -17,11 +21,7 @@ export function FamilyHeatmap({ iocs }) {
   const hourly = days === 1;
 
   const grid = useMemo(() => {
-    const byFamily = {};
-    for (const ioc of iocs) {
-      (byFamily[ioc.malware_printable] ??= []).push(ioc);
-    }
-    const top = Object.entries(byFamily)
+    const top = Object.entries(groupByFamily(iocs))
       .sort((a, b) => b[1].length - a[1].length)
       .slice(0, MAX_ROWS);
 
@@ -45,7 +45,11 @@ export function FamilyHeatmap({ iocs }) {
   return (
     <Group
       title="Campaign timing"
-      description="When each family was active, brighter means busier"
+      description={
+        hourly
+          ? "When each family was active in UTC hours, brighter means busier"
+          : "When each family was active, brighter means busier"
+      }
     >
       <div className="overflow-x-auto">
         <div className="min-w-[560px]">

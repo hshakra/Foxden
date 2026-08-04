@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { buildDailyChart } from "../utils/processor";
+import { buildDailyChart, groupByFamily, familyTypeMix } from "../lib/processor";
 import { typeColor } from "../lib/colors";
 import { useRange } from "../lib/range";
 import { usePrefetchFamily } from "../hooks/useFamily";
@@ -32,24 +32,11 @@ export function TopFamilies({ iocs }) {
   const prefetchFamily = usePrefetchFamily();
 
   const rows = useMemo(() => {
-    // bucket every ioc by family first
-    const byFamily = {};
-    for (const ioc of iocs) {
-      (byFamily[ioc.malware_printable] ??= []).push(ioc);
-    }
-    return Object.entries(byFamily)
+    return Object.entries(groupByFamily(iocs))
       .sort((a, b) => b[1].length - a[1].length)
       .slice(0, 6)
       .map(([name, list]) => {
-        const typeCounts = {};
-        for (const ioc of list) {
-          const t = ioc.ioc_type.endsWith("_hash") ? "hash" : ioc.ioc_type;
-          typeCounts[t] = (typeCounts[t] || 0) + 1;
-        }
-        const parts = Object.entries(typeCounts).map(([type, count]) => ({
-          type,
-          pct: Math.round((count / list.length) * 100),
-        }));
+        const parts = familyTypeMix(list);
         return {
           name,
           count: list.length,

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChevronRight, ChevronDown, Download, Search } from "lucide-react";
-import { sortRecentStream } from "../utils/processor";
+import { sortRecentStream, normalizeType } from "../lib/processor";
 import { THREAT_LABELS } from "../lib/colors";
 import { IOCCard } from "../views/IOCCard";
 import { EmptyState } from "./states";
@@ -31,7 +31,9 @@ function buildDisplayItems(stream, expanded) {
 
   function flushRun() {
     if (run.length >= CLUSTER_MIN) {
-      const id = `${run[0].malware_printable}-${run[0].id}`;
+      // keyed to the oldest ioc so a refresh prepending rows keeps the
+      // expansion state instead of silently collapsing it
+      const id = `${run[0].malware_printable}-${run[run.length - 1].id}`;
       items.push({ kind: "cluster", id, family: run[0].malware_printable, iocs: run });
       if (expanded.has(id)) {
         for (const ioc of run) items.push({ kind: "ioc", ioc, inCluster: true });
@@ -112,10 +114,8 @@ export function FeedTable({
 
   const filtered = useMemo(() => {
     return stream.filter((ioc) => {
-      if (typeFilter.length) {
-        const t = ioc.ioc_type.endsWith("_hash") ? "hash" : ioc.ioc_type;
-        if (!typeFilter.includes(t)) return false;
-      }
+      if (typeFilter.length && !typeFilter.includes(normalizeType(ioc.ioc_type)))
+        return false;
       if (threatFilter.length && !threatFilter.includes(ioc.threat_type))
         return false;
       if ((Number(ioc.confidence_level) || 0) < minConf) return false;
@@ -170,8 +170,9 @@ export function FeedTable({
   useEffect(() => {
     function onKeyDown(e) {
       if (isTypingTarget(document.activeElement)) return;
-      // let an open modal own the keyboard
+      // let an open modal or dropdown own the keyboard
       if (document.querySelector('[role="dialog"]')) return;
+      if (document.querySelector('[aria-expanded="true"]')) return;
       if (!["j", "k", "Enter", "Escape"].includes(e.key)) return;
 
       const iocItems = items.filter((it) => it.kind === "ioc");
@@ -181,7 +182,20 @@ export function FeedTable({
       }
       if (iocItems.length === 0) return;
 
-      const idx = iocItems.findIndex((it) => it.ioc.id === selectedId);
+      let idx = iocItems.findIndex((it) => it.ioc.id === selectedId);
+      if (idx < 0 && selectedId) {
+        // the selection sits inside a collapsed cluster, step relative to
+        // the nearest visible row instead of jumping to the top
+        const streamAt = visible.findIndex((ioc) => ioc.id === selectedId);
+        if (streamAt >= 0) {
+          const before = new Set(visible.slice(0, streamAt).map((i) => i.id));
+          let nearest = -1;
+          for (let i = 0; i < iocItems.length; i++) {
+            if (before.has(iocItems[i].ioc.id)) nearest = i;
+          }
+          idx = nearest;
+        }
+      }
       if (e.key === "j") {
         e.preventDefault();
         onSelect?.(iocItems[Math.min(idx + 1, iocItems.length - 1)].ioc);
@@ -194,7 +208,7 @@ export function FeedTable({
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [items, selectedId, onSelect]);
+  }, [items, visible, selectedId, onSelect]);
 
   // keep the selected row in view when navigating by keyboard
   useEffect(() => {

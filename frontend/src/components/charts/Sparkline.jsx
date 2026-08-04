@@ -10,10 +10,12 @@ export function Sparkline({
 }) {
   const max = Math.max(...points.map((p) => p.count), 1);
   const plotHeight = height - 6;
+  // guard keeps a single point series from dividing by zero
+  const denom = Math.max(points.length - 1, 1);
   const line = points
     .map(
       (p, i) =>
-        `${(i / (points.length - 1)) * width},${
+        `${(i / denom) * width},${
           plotHeight - (p.count / max) * (plotHeight - 6)
         }`,
     )
@@ -37,9 +39,9 @@ export function Sparkline({
           i % tickStep === 0 ? (
             <line
               key={p.date + i}
-              x1={(i / (points.length - 1)) * width}
+              x1={(i / denom) * width}
               y1="2"
-              x2={(i / (points.length - 1)) * width}
+              x2={(i / denom) * width}
               y2={plotHeight}
               stroke="var(--color-line)"
               strokeWidth="0.75"
@@ -69,7 +71,8 @@ export function Sparkline({
       {showLabels && (
         <div className="flex justify-between font-mono text-[9px] text-ink-low tabular-nums">
           <span>{shortLabel(first)}</span>
-          <span>{shortLabel(last)}</span>
+          {/* hourly buckets are utc, say so on the axis */}
+          <span>{last.includes(":") ? `${last} UTC` : shortLabel(last)}</span>
         </div>
       )}
     </div>
@@ -98,15 +101,22 @@ export function SparkBars({ points, height = 18, showLabels = false }) {
           />
         ))}
       </div>
-      {showLabels && (
-        <div className="flex gap-[2px] font-mono text-[9px] text-ink-low tabular-nums">
-          {points.map((p, i) => (
-            <span key={i} className="flex-1 truncate text-center">
-              {i % labelEvery === 0 ? barLabel(p.date) : ""}
-            </span>
-          ))}
-        </div>
-      )}
+      {showLabels &&
+        (points.length > 12 ? (
+          // hourly bars are too narrow for per bar labels, ends only
+          <div className="flex justify-between font-mono text-[9px] text-ink-low tabular-nums">
+            <span>{barLabel(points[0].date)}</span>
+            <span>{barLabel(points[points.length - 1].date)} UTC</span>
+          </div>
+        ) : (
+          <div className="flex gap-[2px] font-mono text-[9px] text-ink-low tabular-nums">
+            {points.map((p, i) => (
+              <span key={i} className="flex-1 truncate text-center">
+                {i % labelEvery === 0 ? barLabel(p.date) : ""}
+              </span>
+            ))}
+          </div>
+        ))}
     </div>
   );
 }

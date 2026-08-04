@@ -10,6 +10,7 @@ export default function useGeo(ips) {
     select: (data) => data.data ?? [],
     enabled: ips.length > 0,
     staleTime: 30 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     refetchInterval: false,
   });
 }

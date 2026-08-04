@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 // hold the applied snapshot steady, count what arrived, and let the user
 // pull the new data in with the refresh pill
 // windowKey changes on a range switch, which applies the new window at once
+// callers fold the query's placeholder flag into the key so the snapshot
+// re-applies the moment real data replaces the previous range's placeholder
 export default function useFrozenFeed(latest, windowKey) {
   const [applied, setApplied] = useState(null);
   const [lastKey, setLastKey] = useState(windowKey);

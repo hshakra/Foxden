@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { computeKpis, buildDailyChart } from "../utils/processor";
+import { computeKpis, buildDailyChart } from "../lib/processor";
 import { Sparkline } from "./charts/Sparkline";
 import { confidenceInfo } from "../lib/confidence";
 import { parseThreatFoxDate } from "../lib/time";

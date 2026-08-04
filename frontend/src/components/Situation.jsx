@@ -1,7 +1,13 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { TrendingUp, TrendingDown } from "lucide-react";
-import { computeKpis, buildActivitySeries, newFamilies } from "../utils/processor";
+import {
+  computeKpis,
+  buildActivitySeries,
+  newFamilies,
+  topFamilyName,
+  countSingleUseTags,
+} from "../lib/processor";
 import { confidenceInfo } from "../lib/confidence";
 import { useRange } from "../lib/range";
 import { CONF_COLORS } from "../lib/colors";
@@ -37,7 +43,7 @@ export function Situation({ iocs, previous = [] }) {
     () => (hasPrev ? newFamilies(iocs, previous) : 0),
     [iocs, previous, hasPrev],
   );
-  const singleUseTags = useMemo(() => countSingleUse(iocs), [iocs]);
+  const singleUseTags = useMemo(() => countSingleUseTags(iocs), [iocs]);
 
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -65,7 +71,7 @@ export function Situation({ iocs, previous = [] }) {
         comparison={
           hasPrev
             ? `${freshFamilies} new in range`
-            : `busiest: ${topFamilyName(iocs)}`
+            : `busiest in range: ${topFamilyName(iocs)}`
         }
         onClick={() => navigate("/families")}
       />
@@ -89,30 +95,4 @@ export function Situation({ iocs, previous = [] }) {
       />
     </div>
   );
-}
-
-// busiest family in range, the 7d fallback when no comparison window exists
-function topFamilyName(iocs) {
-  const counts = {};
-  for (const ioc of iocs) {
-    counts[ioc.malware_printable] = (counts[ioc.malware_printable] || 0) + 1;
-  }
-  let best = "";
-  for (const name in counts) {
-    if (!best || counts[name] > counts[best]) best = name;
-  }
-  return best;
-}
-
-// tags that appear exactly once, a rough noise measure
-function countSingleUse(iocs) {
-  const counts = {};
-  for (const ioc of iocs) {
-    for (const tag of ioc.tags ?? []) {
-      counts[tag] = (counts[tag] || 0) + 1;
-    }
-  }
-  let n = 0;
-  for (const tag in counts) if (counts[tag] === 1) n += 1;
-  return n;
 }

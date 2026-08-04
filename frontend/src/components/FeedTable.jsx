@@ -59,16 +59,23 @@ function isTypingTarget(el) {
   );
 }
 
+// feed values are attacker supplied, neuter leading formula characters
+// so the export cannot execute anything when opened in a spreadsheet
+function csvCell(value) {
+  const safe = String(value ?? "").replace(/^([=+\-@\t\r])/, "'$1");
+  return `"${safe.replaceAll('"', '""')}"`;
+}
+
 function exportCsv(rows) {
   const head = "ioc,type,family,confidence,first_seen,tags";
   const lines = rows.map((r) =>
     [
-      `"${r.ioc.replaceAll('"', '""')}"`,
+      csvCell(r.ioc),
       r.ioc_type,
-      `"${(r.malware_printable ?? "").replaceAll('"', '""')}"`,
+      csvCell(r.malware_printable),
       r.confidence_level,
       r.first_seen,
-      `"${(r.tags ?? []).join(" ")}"`,
+      csvCell((r.tags ?? []).join(" ")),
     ].join(","),
   );
   const blob = new Blob([[head, ...lines].join("\n")], { type: "text/csv" });

@@ -137,7 +137,8 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
         </Row>
       )}
       {ioc.reporter && <Row k="Reporter">{ioc.reporter}</Row>}
-      {ioc.reference && (
+      {/* reporter supplied url, only follow real web links */}
+      {/^https?:\/\//i.test(ioc.reference ?? "") && (
         <Row k="Reference">
           <a
             href={ioc.reference}

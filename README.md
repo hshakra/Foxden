@@ -26,8 +26,6 @@ Backend: FastAPI. A small proxy that keeps the ThreatFox key on the server, vali
 Type: Schibsted Grotesk for the interface, Martian Mono for all data values.
 Data: ThreatFox API from abuse.ch, plus ip-api.com for geolocation.
 
-The design system lives in [DESIGN.md](DESIGN.md) and the build plan in [THREATSCOPE.md](THREATSCOPE.md).
-
 ## Run it locally
 
 Backend. You need a free Auth-Key from https://auth.abuse.ch/

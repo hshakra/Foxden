@@ -4,44 +4,66 @@
 
 /*
   foxden design tokens, the single source of visual truth
-  see DESIGN.md for the rules, change values here and never inline
+  elevation is lightness, over 90 percent of any screen is these neutrals
+  one interactive accent, confidence colors never mean anything else
 */
 @theme {
-  /* surface ramp, higher elevation means a lighter surface, never pure black */
-  --color-surface-0: #0e1014;
-  --color-surface-1: #161a21;
-  --color-surface-2: #1d232d;
-  --color-surface-3: #242c38;
-  --color-line: #262e3a;
-  --color-line-2: #333d4c;
+  /* neutral ladder, higher elevation is lighter, never pure black */
+  --color-bg: oklch(0.16 0.01 250);
+  --color-raised: oklch(0.19 0.012 250);
+  --color-lifted: oklch(0.22 0.014 250);
+  --color-overlay: oklch(0.25 0.016 250);
+  --color-line: oklch(0.28 0.012 250);
+  --color-line-strong: oklch(0.33 0.014 250);
 
   /* text ramp */
-  --color-ink: #e0e2db;
-  --color-ink-2: #99a0a8;
-  --color-ink-3: #6b7380;
+  --color-ink: oklch(0.93 0.005 250);
+  --color-ink-mid: oklch(0.72 0.01 250);
+  --color-ink-low: oklch(0.55 0.012 250);
 
-  /* brand colors, glaucous is the only accent */
+  /* glaucous, the only interactive accent, soft variant for hover text */
   --color-accent: #7180b9;
   --color-accent-soft: #aeb8dc;
-  --color-sage: #c2c6ae;
-  --color-slate: #7e8aa0;
 
-  /* ioc type series, four muted but clearly separated hues */
+  /* confidence contract, always beside a text label, never reused elsewhere */
+  --color-conf-high: #5c9c7f;
+  --color-conf-med: #ffb020;
+  --color-conf-low: #ff5470;
+
+  /* chart series, only inside charts, threat types reuse by position */
   --color-t-ip: #6e9bd1;
   --color-t-domain: #9179c9;
   --color-t-url: #c9a86b;
   --color-t-hash: #56a8a0;
 
-  /* status colors, used only for status and always with a text label */
-  /* good-dim marks the high confidence norm, bright colors mark exceptions */
-  --color-good: #3ddc84;
-  --color-good-dim: #5c9c7f;
-  --color-warn: #ffb020;
-  --color-bad: #ff5470;
+  /* type scale, five sizes, nothing outside it */
+  --text-meta: 11px;
+  --text-meta--line-height: 1.3;
+  --text-secondary: 12px;
+  --text-secondary--line-height: 1.3;
+  --text-body: 13px;
+  --text-body--line-height: 1.3;
+  --text-title: 16px;
+  --text-title--line-height: 1.3;
+  --text-display: 22px;
+  --text-display--line-height: 1.2;
 
-  /* type */
+  /* fonts, mono is for machine data only */
   --font-sans: "Schibsted Grotesk Variable", system-ui, sans-serif;
   --font-mono: "Martian Mono Variable", ui-monospace, Menlo, monospace;
+
+  /* v1 names kept while pages migrate, delete after the sweep */
+  --color-surface-0: var(--color-bg);
+  --color-surface-1: var(--color-raised);
+  --color-surface-2: var(--color-lifted);
+  --color-surface-3: var(--color-overlay);
+  --color-line-2: var(--color-line-strong);
+  --color-ink-2: var(--color-ink-mid);
+  --color-ink-3: var(--color-ink-low);
+  --color-good: var(--color-conf-high);
+  --color-good-dim: var(--color-conf-high);
+  --color-warn: var(--color-conf-med);
+  --color-bad: var(--color-conf-low);
 }
 
 html {
@@ -49,7 +71,7 @@ html {
 }
 
 body {
-  background-color: var(--color-surface-0);
+  background-color: var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -59,9 +81,9 @@ body {
 .skeleton {
   background: linear-gradient(
     90deg,
-    var(--color-surface-2),
-    var(--color-surface-3),
-    var(--color-surface-2)
+    var(--color-lifted),
+    var(--color-overlay),
+    var(--color-lifted)
   );
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.6s infinite;
@@ -71,9 +93,9 @@ body {
   100% { background-position: -200% 0; }
 }
 
-/* single fade in on page load, the reduced motion rule below disables it */
+/* the one page level fade, no other entrances anywhere */
 .reveal {
-  animation: reveal 0.35s ease-out both;
+  animation: reveal 0.2s ease-out both;
 }
 @keyframes reveal {
   from { opacity: 0; transform: translateY(4px); }
@@ -83,14 +105,14 @@ body {
 /* thin dark scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-line-2) transparent;
+  scrollbar-color: var(--color-line-strong) transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: var(--color-line-2);
+  background: var(--color-line-strong);
   border-radius: 4px;
 }
 *::-webkit-scrollbar-track {

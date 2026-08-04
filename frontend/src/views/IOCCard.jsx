@@ -24,7 +24,7 @@ export function TypeBadge({ type }) {
   return (
     <span
       className={`inline-block rounded-md border px-1.5 py-0.5 font-mono text-[9px] whitespace-nowrap ${
-        TYPE_STYLES[type] ?? "text-slate bg-slate/10 border-slate/25"
+        TYPE_STYLES[type] ?? "text-ink-mid bg-ink-low/10 border-ink-low/25"
       }`}
     >
       {TYPE_LABELS[type] ?? type}

@@ -13,9 +13,9 @@ export const TYPE_COLORS = {
 
 // quiet is the norm in dim green, alert colors mark the exceptions
 export const CONF_COLORS = {
-  quiet: "var(--color-good-dim)",
-  warn: "var(--color-warn)",
-  bad: "var(--color-bad)",
+  quiet: "var(--color-conf-high)",
+  warn: "var(--color-conf-med)",
+  bad: "var(--color-conf-low)",
 };
 
 // what the attacker uses the indicator for
@@ -24,7 +24,7 @@ export const THREAT_COLORS = {
   payload_delivery: "var(--color-t-url)",
   payload: "var(--color-t-hash)",
   phishing: "var(--color-t-domain)",
-  other: "var(--color-slate)",
+  other: "var(--color-ink-low)",
 };
 
 export const THREAT_LABELS = {
@@ -36,7 +36,7 @@ export const THREAT_LABELS = {
 };
 
 export function typeColor(type) {
-  return TYPE_COLORS[type] ?? "var(--color-slate)";
+  return TYPE_COLORS[type] ?? "var(--color-ink-low)";
 }
 
 // thermal ramp for intensity charts, a little warmer than the chrome
@@ -44,7 +44,7 @@ export function typeColor(type) {
 const RAMP = ["#262c47", "#4a5686", "#7180b9", "#93a3d6", "#bfae8a"];
 
 export function heatColor(t) {
-  if (t <= 0) return "var(--color-surface-0)";
+  if (t <= 0) return "var(--color-bg)";
   const clamped = Math.min(1, Math.max(0, t));
   const scaled = clamped * (RAMP.length - 1);
   const low = Math.floor(scaled);

@@ -1,21 +1,22 @@
 import { RefreshCw, SearchX } from "lucide-react";
+import { Chip } from "./ui/Chip";
 
 // loading placeholder shaped like the real content, no generic spinners
 export function Skeleton({ className = "" }) {
   return (
     <span
       aria-hidden="true"
-      className={`skeleton block rounded-md bg-surface-2 ${className}`}
+      className={`skeleton block rounded-md bg-lifted ${className}`}
     />
   );
 }
 
-// a stack of row shaped skeletons for feeds and tables
+// a stack of row shaped skeletons matching the 40px table spec
 export function SkeletonRows({ rows = 6 }) {
   return (
-    <div role="status" aria-label="Loading" className="flex flex-col gap-3 py-2">
+    <div role="status" aria-label="Loading" className="flex flex-col">
       {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className="flex items-center gap-3">
+        <div key={i} className="flex h-10 items-center gap-3 border-b border-line">
           <Skeleton className="h-5 w-14" />
           <Skeleton className={`h-3.5 ${i % 2 ? "w-2/5" : "w-1/2"}`} />
           <Skeleton className="h-3.5 w-24" />
@@ -26,18 +27,28 @@ export function SkeletonRows({ rows = 6 }) {
   );
 }
 
-// empty state explains what happened and offers a next action
-export function EmptyState({ title, hint, actionLabel, onAction }) {
+// empty state explains what happened and offers a next step
+// pass examples to teach on first run, pass an action to clear a filter
+export function EmptyState({ icon: Icon = SearchX, title, hint, actionLabel, onAction, examples }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line-2 px-6 py-10 text-center">
-      <SearchX size={20} className="text-ink-3" />
-      <p className="text-sm font-semibold">{title}</p>
-      {hint && <p className="text-xs text-ink-2">{hint}</p>}
+    <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-line-strong px-6 py-10 text-center">
+      <Icon size={20} className="text-ink-low" />
+      <p className="text-body font-medium">{title}</p>
+      {hint && <p className="text-secondary text-ink-mid">{hint}</p>}
+      {examples?.length > 0 && (
+        <div className="mt-2 flex flex-wrap justify-center gap-2">
+          {examples.map((ex) => (
+            <Chip key={ex.label} onClick={ex.onClick}>
+              {ex.label}
+            </Chip>
+          ))}
+        </div>
+      )}
       {actionLabel && (
         <button
           type="button"
           onClick={onAction}
-          className="mt-2 rounded-lg border border-line-2 bg-surface-2 px-3 py-1.5 text-xs font-semibold hover:border-accent hover:text-accent-soft"
+          className="mt-2 rounded-md border border-line bg-lifted px-3 py-1.5 text-secondary font-medium transition-colors duration-150 hover:border-line-strong hover:text-ink"
         >
           {actionLabel}
         </button>
@@ -51,17 +62,17 @@ export function ErrorState({ error, onRetry }) {
   return (
     <div
       role="alert"
-      className="flex flex-col items-center gap-2 rounded-xl border border-bad/30 bg-bad/5 px-6 py-10 text-center"
+      className="flex flex-col items-center gap-2 rounded-lg border border-conf-low/30 bg-conf-low/5 px-6 py-10 text-center"
     >
-      <p className="text-sm font-semibold">Couldn't load this data</p>
-      <p className="max-w-md font-mono text-[11px] text-ink-2">
+      <p className="text-body font-medium">Couldn't load this data</p>
+      <p className="max-w-md font-mono text-meta text-ink-mid">
         {error?.message ?? "Something went wrong talking to the feed."}
       </p>
       {onRetry && (
         <button
           type="button"
           onClick={onRetry}
-          className="mt-2 flex items-center gap-1.5 rounded-lg border border-line-2 bg-surface-2 px-3 py-1.5 text-xs font-semibold hover:border-accent hover:text-accent-soft"
+          className="mt-2 flex items-center gap-1.5 rounded-md border border-line bg-lifted px-3 py-1.5 text-secondary font-medium transition-colors duration-150 hover:border-line-strong hover:text-ink"
         >
           <RefreshCw size={12} />
           Retry

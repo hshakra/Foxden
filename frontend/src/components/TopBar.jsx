@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { Search, ArrowLeft } from "lucide-react";
 import { useRange, RANGES } from "../lib/range";
 import { useLookup } from "../lib/lookup";
 
@@ -35,13 +36,38 @@ function Freshness() {
   );
 }
 
-export function TopBar({ title, subtitle, children }) {
+export function TopBar({ title, subtitle, crumbs, children }) {
   const { days, setDays } = useRange();
   const { openLookup } = useLookup();
 
   return (
     <div className="flex items-center gap-3.5 border-b border-line px-5 py-3">
+      {crumbs?.length > 0 && (
+        <Link
+          to={crumbs[0].to}
+          aria-label={`Back to ${crumbs[0].label}`}
+          className="rounded-lg border border-line p-1.5 text-ink-3 hover:border-line-2 hover:text-ink"
+        >
+          <ArrowLeft size={14} />
+        </Link>
+      )}
       <div className="leading-tight">
+        {crumbs?.length > 0 && (
+          <p className="font-mono text-[9px] uppercase tracking-widest text-ink-3">
+            {crumbs.map((c, i) => (
+              <span key={c.label}>
+                {i > 0 && " / "}
+                {c.to ? (
+                  <Link to={c.to} className="hover:text-accent-soft">
+                    {c.label}
+                  </Link>
+                ) : (
+                  c.label
+                )}
+              </span>
+            ))}
+          </p>
+        )}
         <h1 className="text-[15px] font-bold">{title}</h1>
         {subtitle && (
           <p className="font-mono text-[10px] text-ink-3">{subtitle}</p>

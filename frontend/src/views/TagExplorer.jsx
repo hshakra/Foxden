@@ -19,7 +19,11 @@ export default function TagExplorer() {
 
   return (
     <>
-      <TopBar title={`#${name}`} subtitle="campaign tag" />
+      <TopBar
+        title={`#${name}`}
+        subtitle="campaign tag"
+        crumbs={[{ label: "Tags", to: "/tags" }, { label: name }]}
+      />
       <div className="reveal flex flex-col gap-6 p-5">
         {tag.isPending ? (
           <SkeletonRows rows={8} />

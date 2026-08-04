@@ -1,30 +1,131 @@
 import { useMemo } from "react";
-import { rankFamilies } from "../utils/processor";
-import { FamilyCard } from "./FamilyCard";
+import { Link } from "react-router-dom";
+import { buildDailyChart } from "../utils/processor";
+import { typeColor } from "../lib/colors";
+import { useRange } from "../lib/range";
 
-// builds family panel
+// family leaderboard for the overview
+// each row carries its own trend line and type mix so a spike or an
+// infrastructure shift is visible without leaving the page
+
+function Spark({ points }) {
+  const max = Math.max(...points.map((p) => p.count), 1);
+  const line = points
+    .map(
+      (p, i) =>
+        `${(i / (points.length - 1)) * 72},${20 - (p.count / max) * 16}`,
+    )
+    .join(" ");
+  return (
+    <svg viewBox="0 0 72 22" className="h-[22px] w-[72px]" aria-hidden="true">
+      <polyline
+        fill="none"
+        stroke="var(--color-accent)"
+        strokeWidth="1.4"
+        points={line}
+      />
+    </svg>
+  );
+}
+
+function MixBar({ mix }) {
+  return (
+    <span className="flex h-[5px] w-14 gap-[2px]" title={mix.title}>
+      {mix.parts.map((p) => (
+        <span
+          key={p.type}
+          className="rounded-[1px]"
+          style={{ width: `${p.pct}%`, background: typeColor(p.type) }}
+        />
+      ))}
+    </span>
+  );
+}
+
 export function TopFamilies({ iocs }) {
-  //returns name and count iocs
-  const data = useMemo(() => rankFamilies(iocs), [iocs]);
-  const max = data[0]?.count ?? 1;
+  const { days } = useRange();
+
+  const rows = useMemo(() => {
+    // bucket every ioc by family first
+    const byFamily = {};
+    for (const ioc of iocs) {
+      (byFamily[ioc.malware_printable] ??= []).push(ioc);
+    }
+    return Object.entries(byFamily)
+      .sort((a, b) => b[1].length - a[1].length)
+      .slice(0, 6)
+      .map(([name, list]) => {
+        const typeCounts = {};
+        for (const ioc of list) {
+          const t = ioc.ioc_type.endsWith("_hash") ? "hash" : ioc.ioc_type;
+          typeCounts[t] = (typeCounts[t] || 0) + 1;
+        }
+        const parts = Object.entries(typeCounts).map(([type, count]) => ({
+          type,
+          pct: Math.round((count / list.length) * 100),
+        }));
+        return {
+          name,
+          count: list.length,
+          spark: buildDailyChart(list, Math.max(days, 7)),
+          mix: {
+            parts,
+            title: parts.map((p) => `${p.type} ${p.pct}%`).join(", "),
+          },
+        };
+      });
+  }, [iocs, days]);
 
   return (
     <div className="rounded-xl border border-line bg-surface-1 p-4">
       <div className="mb-2 flex items-baseline gap-2.5">
         <h4 className="text-[13px] font-semibold">Top families</h4>
         <span className="font-mono text-[10px] text-ink-3">
-          click a family to open its profile
+          trend and type mix per family
         </span>
+        <Link
+          to="/families"
+          className="ml-auto font-mono text-[10px] text-accent-soft hover:underline"
+        >
+          all families
+        </Link>
       </div>
-      <div>
-        {data.map((i, rank) => (
-          <FamilyCard
-            key={i.name}
-            rank={rank + 1}
-            name={i.name}
-            count={i.count}
-            max={max}
-          />
+      <div
+        role="table"
+        className="grid grid-cols-[16px_minmax(0,1fr)_76px_60px_40px] items-center gap-x-3"
+      >
+        <span />
+        <span />
+        <span className="pb-1 font-mono text-[8.5px] uppercase tracking-widest text-ink-3">
+          trend
+        </span>
+        <span className="pb-1 font-mono text-[8.5px] uppercase tracking-widest text-ink-3">
+          mix
+        </span>
+        <span className="pb-1 text-right font-mono text-[8.5px] uppercase tracking-widest text-ink-3">
+          iocs
+        </span>
+        {rows.map((f, i) => (
+          <Link
+            key={f.name}
+            to={`/family/${encodeURIComponent(f.name)}`}
+            className="col-span-5 grid grid-cols-subgrid items-center border-t border-line py-1.5 hover:bg-surface-2/50"
+          >
+            <span className="font-mono text-[10px] text-ink-3 tabular-nums">
+              {i + 1}
+            </span>
+            <span
+              className="truncate text-xs font-semibold text-accent-soft"
+              title={f.name}
+            >
+              {f.name}
+            </span>
+            <Spark points={f.spark} />
+            <MixBar mix={f.mix} />
+            <span className="text-right font-mono text-[10px] text-ink-2 tabular-nums">
+              {f.count}
+            </span>
+          </Link>
         ))}
       </div>
     </div>

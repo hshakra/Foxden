@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
-import DottedMap from "dotted-map";
+import { geoNaturalEarth1, geoPath } from "d3-geo";
+import { feature } from "topojson-client";
+import worldData from "world-atlas/countries-110m.json";
 import useGeo from "../hooks/useGeo";
+import { NUM_TO_A2 } from "../lib/isoCodes";
 import {
   extractIPs,
   ipConfidenceMap,
@@ -9,14 +12,23 @@ import {
 import { useRange } from "../lib/range";
 import { Skeleton } from "./states";
 
-// the overview hero, malicious ip origins on a dotted world map
+// the overview hero, a world map shaded by where malicious ips sit
 // toggles between volume (how many) and confidence (how certain)
 
-// build the world grid once, it never changes
-const worldMap = new DottedMap({ height: 50, grid: "diagonal" });
-const WORLD_POINTS = worldMap.getPoints();
-const MAP_W = Math.max(...WORLD_POINTS.map((p) => p.x)) + 2;
-const MAP_H = Math.max(...WORLD_POINTS.map((p) => p.y)) + 2;
+// project the country shapes once, they never change
+const MAP_W = 940;
+const MAP_H = 460;
+const countries = feature(worldData, worldData.objects.countries).features;
+const projection = geoNaturalEarth1().fitSize([MAP_W, MAP_H], {
+  type: "FeatureCollection",
+  features: countries,
+});
+const pathFor = geoPath(projection);
+const COUNTRY_PATHS = countries.map((c) => ({
+  a2: NUM_TO_A2[Number(c.id)],
+  name: c.properties.name,
+  d: pathFor(c),
+}));
 
 const MODES = ["Volume", "Confidence"];
 
@@ -28,6 +40,7 @@ function confidenceColor(avg) {
 
 export function OriginMap({ iocs }) {
   const [mode, setMode] = useState("Volume");
+  const [hovered, setHovered] = useState(null);
   const { days } = useRange();
   const ips = useMemo(() => extractIPs(iocs), [iocs]);
   const confByIp = useMemo(() => ipConfidenceMap(iocs), [iocs]);
@@ -48,45 +61,51 @@ export function OriginMap({ iocs }) {
     )
     .join(" ");
 
-  // group by country with count, average confidence, and pin position
-  const origins = useMemo(() => {
-    if (!geo.data) return [];
-    const byCountry = {};
-    for (const row of geo.data) {
-      const entry = (byCountry[row.countryCode] ??= {
+  // group by country with count and average confidence
+  const byCountry = useMemo(() => {
+    const map = {};
+    for (const row of geo.data ?? []) {
+      const entry = (map[row.countryCode] ??= {
         code: row.countryCode,
         name: row.country,
         count: 0,
         confSum: 0,
-        lat: row.lat,
-        lon: row.lon,
       });
       entry.count += 1;
       entry.confSum += confByIp[row.ip] ?? 0;
     }
-    return Object.values(byCountry)
-      .map((c) => ({ ...c, avgConf: Math.round(c.confSum / c.count) }))
-      .sort((a, b) => b.count - a.count);
+    for (const entry of Object.values(map)) {
+      entry.avgConf = Math.round(entry.confSum / entry.count);
+    }
+    return map;
   }, [geo.data, confByIp]);
 
-  const top = origins.slice(0, 6);
-  const maxCount = top[0]?.count ?? 1;
-
-  const pins = useMemo(
-    () =>
-      origins.slice(0, 24).map((c) => ({
-        ...c,
-        ...worldMap.getPin({ lat: c.lat, lng: c.lon }),
-      })),
-    [origins],
+  const origins = useMemo(
+    () => Object.values(byCountry).sort((a, b) => b.count - a.count),
+    [byCountry],
   );
+  const top = origins.slice(0, 6);
+  const maxCount = origins[0]?.count ?? 1;
+
+  // shading strength, sqrt keeps mid sized countries visible next to the top one
+  function fillFor(a2) {
+    const entry = a2 ? byCountry[a2] : null;
+    if (!entry) return { fill: "var(--color-surface-3)", opacity: 0.55 };
+    if (mode === "Volume") {
+      const t = Math.sqrt(entry.count / maxCount);
+      return { fill: "var(--color-accent)", opacity: 0.25 + t * 0.7 };
+    }
+    return { fill: confidenceColor(entry.avgConf), opacity: 0.55 };
+  }
+
+  const hoveredEntry = hovered ? byCountry[hovered.a2] : null;
 
   return (
     <div className="rounded-xl border border-line bg-surface-1 p-4">
       <div className="mb-3 flex items-baseline gap-2.5">
-        <h4 className="text-[13px] font-semibold">Live origin map</h4>
+        <h4 className="text-[13px] font-semibold">Origin map</h4>
         <span className="font-mono text-[10px] text-ink-3">
-          malicious IPs by geolocation
+          malicious IPs by country
         </span>
         <div
           className="ml-auto flex overflow-hidden rounded-lg border border-line font-mono text-[10px]"
@@ -113,58 +132,46 @@ export function OriginMap({ iocs }) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_215px]">
-        <div className="overflow-hidden rounded-lg border border-line bg-gradient-to-b from-surface-1 to-surface-2">
+        <div className="relative overflow-hidden rounded-lg border border-line bg-surface-0">
           {loading ? (
-            <Skeleton className="h-[240px] w-full" />
+            <Skeleton className="h-[300px] w-full" />
           ) : (
-            <svg
-              viewBox={`0 0 ${MAP_W} ${MAP_H}`}
-              className="block h-auto w-full"
-              aria-label="World map of malicious IP origins"
-            >
-              {WORLD_POINTS.map((p, i) => (
-                <circle
-                  key={i}
-                  cx={p.x}
-                  cy={p.y}
-                  r={0.32}
-                  fill="var(--color-accent-soft)"
-                  opacity={0.28}
-                />
-              ))}
-              {pins.map((pin) => {
-                const scale =
-                  mode === "Volume"
-                    ? Math.sqrt(pin.count / maxCount)
-                    : pin.avgConf / 100;
-                const r = 2 + scale * 7;
-                const color =
-                  mode === "Volume"
-                    ? "var(--color-accent)"
-                    : confidenceColor(pin.avgConf);
-                return (
-                  <g key={pin.code}>
-                    <circle
-                      cx={pin.x}
-                      cy={pin.y}
-                      r={r}
-                      fill={color}
-                      opacity={0.18}
+            <>
+              <svg
+                viewBox={`0 0 ${MAP_W} ${MAP_H}`}
+                className="mx-auto block max-h-[340px] w-full"
+                aria-label="World map shaded by malicious IP origin"
+                onMouseLeave={() => setHovered(null)}
+              >
+                {COUNTRY_PATHS.map((c) => {
+                  const style = fillFor(c.a2);
+                  return (
+                    <path
+                      key={`${c.a2}-${c.name}`}
+                      d={c.d}
+                      fill={style.fill}
+                      fillOpacity={style.opacity}
+                      stroke="var(--color-surface-0)"
+                      strokeWidth={0.6}
+                      onMouseEnter={() => setHovered(c)}
                     />
-                    <circle
-                      cx={pin.x}
-                      cy={pin.y}
-                      r={r}
-                      fill="none"
-                      stroke={color}
-                      strokeOpacity={0.75}
-                      strokeWidth={0.45}
-                    />
-                    <circle cx={pin.x} cy={pin.y} r={0.8} fill={color} />
-                  </g>
-                );
-              })}
-            </svg>
+                  );
+                })}
+              </svg>
+              {hovered && (
+                <div className="pointer-events-none absolute left-3 top-3 rounded-lg border border-line-2 bg-surface-3 px-2.5 py-1.5 font-mono text-[10px]">
+                  <b>{hoveredEntry?.name ?? hovered.name}</b>
+                  {hoveredEntry ? (
+                    <span className="text-ink-2">
+                      {" "}
+                      {hoveredEntry.count} IOCs, avg conf {hoveredEntry.avgConf}
+                    </span>
+                  ) : (
+                    <span className="text-ink-3"> no recorded IOCs</span>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -179,7 +186,9 @@ export function OriginMap({ iocs }) {
               ))}
             </div>
           ) : geo.isError ? (
-            <p className="text-xs text-ink-3">Geolocation is unavailable right now.</p>
+            <p className="text-xs text-ink-3">
+              Geolocation is unavailable right now.
+            </p>
           ) : top.length === 0 ? (
             <p className="text-xs text-ink-3">No ip:port IOCs in range.</p>
           ) : (

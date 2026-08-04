@@ -1,12 +1,18 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { LayoutGrid, Shield, Tag, Search } from "lucide-react";
 import { FoxLogo } from "./FoxLogo";
 import { useLookup } from "../lib/lookup";
 
 const items = [
-  { to: "/", label: "Overview", icon: LayoutGrid, end: true },
-  { to: "/families", label: "Families", icon: Shield },
-  { to: "/tags", label: "Tags", icon: Tag },
+  { to: "/", label: "Overview", icon: LayoutGrid, match: (p) => p === "/" },
+  {
+    to: "/families",
+    label: "Families",
+    icon: Shield,
+    // stays lit inside /family/:name too
+    match: (p) => p.startsWith("/famil"),
+  },
+  { to: "/tags", label: "Tags", icon: Tag, match: (p) => p.startsWith("/tag") },
 ];
 
 const itemClass = (isActive) =>
@@ -18,6 +24,7 @@ const itemClass = (isActive) =>
 
 export function NavRail() {
   const { openLookup } = useLookup();
+  const { pathname } = useLocation();
 
   return (
     <aside className="w-[76px] shrink-0 bg-surface-1 border-r border-line flex flex-col items-center py-4">
@@ -26,13 +33,8 @@ export function NavRail() {
       </NavLink>
 
       <nav className="mt-5 flex w-full flex-col items-center gap-1.5">
-        {items.map(({ to, label, icon: Icon, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) => itemClass(isActive)}
-          >
+        {items.map(({ to, label, icon: Icon, match }) => (
+          <NavLink key={to} to={to} className={itemClass(match(pathname))}>
             <Icon size={18} strokeWidth={2} />
             <span>{label}</span>
           </NavLink>

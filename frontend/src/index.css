@@ -26,11 +26,11 @@
   --color-sage: #c2c6ae;
   --color-slate: #7e8aa0;
 
-  /* IOC-type series */
-  --color-t-ip: #8fa0c9;
-  --color-t-domain: #aeb8dc;
-  --color-t-url: #c2c6ae;
-  --color-t-hash: #7e8aa0;
+  /* ioc type series, four muted but clearly separated hues */
+  --color-t-ip: #6e9bd1;
+  --color-t-domain: #9179c9;
+  --color-t-url: #c9a86b;
+  --color-t-hash: #56a8a0;
 
   /* status colors, used only for status and always with a text label */
   --color-good: #3ddc84;

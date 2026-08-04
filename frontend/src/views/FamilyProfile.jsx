@@ -19,7 +19,11 @@ export function FamilyProfile() {
 
   return (
     <>
-      <TopBar title={name} subtitle="malware family" />
+      <TopBar
+        title={name}
+        subtitle="malware family"
+        crumbs={[{ label: "Families", to: "/families" }, { label: name }]}
+      />
       <div className="reveal flex flex-col gap-6 p-5">
         {family.isPending ? (
           <SkeletonRows rows={8} />

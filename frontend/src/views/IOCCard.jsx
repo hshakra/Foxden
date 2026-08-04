@@ -1,5 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Copy, Check, MoreVertical, ExternalLink, Shield } from "lucide-react";
+import {
+  Copy,
+  Check,
+  MoreVertical,
+  ExternalLink,
+  Shield,
+  ChevronRight,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { timeAgo } from "../lib/time";
 import { confidenceInfo } from "../lib/confidence";
@@ -70,7 +77,7 @@ export function IOCCard({ ioc, selected, onSelect, onFamilyClick }) {
       tabIndex={0}
       onClick={onSelect}
       onKeyDown={(e) => e.key === "Enter" && onSelect?.()}
-      className={`group grid cursor-pointer grid-cols-[70px_minmax(0,1fr)_130px_120px_42px_26px] items-center gap-2.5 rounded-md border-b border-line px-2 py-2 text-xs transition-colors ${
+      className={`group grid cursor-pointer grid-cols-[70px_minmax(0,1fr)_130px_120px_42px_44px] items-center gap-2.5 rounded-md border-b border-line px-2 py-2 text-xs transition-colors ${
         selected
           ? "border-transparent bg-surface-2 shadow-[inset_2px_0_0_var(--color-accent)]"
           : "hover:bg-surface-2/50"
@@ -128,7 +135,15 @@ export function IOCCard({ ioc, selected, onSelect, onFamilyClick }) {
         {timeAgo(ioc.first_seen)}
       </span>
 
-      <RowMenu ioc={ioc} onCopy={copyValue} />
+      <span className="flex items-center justify-end gap-1">
+        <RowMenu ioc={ioc} onCopy={copyValue} />
+        <ChevronRight
+          size={13}
+          className={`shrink-0 transition-colors ${
+            selected ? "text-accent-soft" : "text-ink-3 group-hover:text-ink-2"
+          }`}
+        />
+      </span>
     </div>
   );
 }
@@ -162,7 +177,7 @@ function RowMenu({ ioc, onCopy }) {
           setOpen((v) => !v);
         }}
         className={`text-ink-3 transition-opacity hover:text-ink focus-visible:opacity-100 group-hover:opacity-100 ${
-          open ? "" : "opacity-0"
+          open ? "" : "opacity-40"
         }`}
       >
         <MoreVertical size={13} />

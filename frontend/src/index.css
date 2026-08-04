@@ -119,6 +119,12 @@ button:not(:disabled) {
   border-radius: 4px;
 }
 
+/* text fields sit inside styled boxes that mark focus themselves,
+   a second ring around the bare input reads as a double border */
+input:focus-visible {
+  outline: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

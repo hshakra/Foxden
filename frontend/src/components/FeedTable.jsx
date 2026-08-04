@@ -360,7 +360,7 @@ export function FeedTable({
             label={familyFilter ? `Family: ${familyFilter}` : "Family: all"}
             active={Boolean(familyFilter)}
           >
-            <span className="flex items-center gap-1.5 border-b border-line px-2.5 pb-1.5 pt-1">
+            <span className="flex items-center gap-1.5 border-b border-line px-2.5 pb-1.5 pt-1 transition-colors duration-150 focus-within:border-accent">
               <Search size={11} className="text-ink-low" />
               <input
                 value={familySearch}

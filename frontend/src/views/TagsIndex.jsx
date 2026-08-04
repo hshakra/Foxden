@@ -147,7 +147,7 @@ export default function TagsIndex() {
               title="All tags"
               description={`${shown.length} of ${rows.length} shown`}
               actions={
-                <span className="flex min-w-[200px] items-center gap-2 rounded-md border border-line bg-lifted px-2.5 py-1.5">
+                <span className="flex min-w-[200px] items-center gap-2 rounded-md border border-line bg-lifted px-2.5 py-1.5 transition-colors duration-150 focus-within:border-accent">
                   <Search size={12} className="text-ink-low" />
                   <input
                     value={search}

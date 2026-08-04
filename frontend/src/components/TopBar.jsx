@@ -87,17 +87,17 @@ export function TopBar({ title, subtitle, descriptionExtra, crumbs, children }) 
       <button
         type="button"
         onClick={openLookup}
-        className="ml-auto hidden min-w-[210px] items-center gap-2 rounded-md border border-line bg-raised px-3 py-1.5 text-left text-secondary text-ink-low transition-colors duration-150 hover:border-line-strong hover:text-ink-mid md:flex"
+        className="ml-auto hidden min-w-0 items-center gap-2 rounded-md border border-line bg-raised px-3 py-1.5 text-left text-secondary text-ink-low transition-colors duration-150 hover:border-line-strong hover:text-ink-mid md:flex lg:min-w-[210px]"
       >
-        <Search size={13} />
-        Search IOC, family, or tag
+        <Search size={13} className="shrink-0" />
+        <span className="truncate">Search IOC, family, or tag</span>
         <kbd className="ml-auto rounded border border-line-strong px-1.5 font-mono text-meta">
           /
         </kbd>
       </button>
 
       <div
-        className="flex overflow-hidden rounded-md border border-line"
+        className="flex shrink-0 overflow-hidden rounded-md border border-line"
         role="radiogroup"
         aria-label="Time range"
       >

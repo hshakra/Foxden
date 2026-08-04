@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import useFamily from "../hooks/useFamily";
+import useRecentIOCs from "../hooks/useRecentIOCs";
 import { isNoResult } from "../lib/api";
 import { TopBar } from "../components/TopBar";
 import { DetailHeader } from "../components/DetailHeader";
@@ -12,9 +13,16 @@ import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
 export default function FamilyProfile() {
   const { name } = useParams();
   const family = useFamily(name);
+  const recent = useRecentIOCs();
   const [selected, setSelected] = useState(null);
 
   const iocs = useMemo(() => family.data ?? [], [family.data]);
+  // headline count from the range feed so it matches the index pages
+  const rangeFeed = recent.data?.current;
+  const rangeCount = useMemo(() => {
+    if (!rangeFeed) return undefined;
+    return rangeFeed.filter((i) => i.malware_printable === name).length;
+  }, [rangeFeed, name]);
 
   return (
     <>
@@ -43,6 +51,7 @@ export default function FamilyProfile() {
             <DetailHeader
               kind="family"
               iocs={iocs}
+              rangeCount={rangeCount}
               watch={{ kind: "family", name }}
             />
             <div

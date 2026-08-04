@@ -35,6 +35,14 @@ export const THREAT_LABELS = {
   other: "other",
 };
 
+// plain language behind the jargon, used as hover titles
+export const THREAT_TITLES = {
+  botnet_cc: "botnet command and control, where infected machines call home",
+  payload_delivery: "infrastructure that delivers malware to victims",
+  payload: "the malware file itself",
+  phishing: "credential or identity theft pages",
+};
+
 export function typeColor(type) {
   return TYPE_COLORS[type] ?? "var(--color-ink-low)";
 }

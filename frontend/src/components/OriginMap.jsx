@@ -7,11 +7,8 @@ import { NUM_TO_A2 } from "../lib/isoCodes";
 import {
   extractIPs,
   ipConfidenceMap,
-  buildActivitySeries,
 } from "../lib/processor";
 import { CONF_COLORS } from "../lib/colors";
-import { Sparkline } from "./charts/Sparkline";
-import { useRange } from "../lib/range";
 import { Skeleton } from "./states";
 import { Group } from "./ui/Group";
 
@@ -45,15 +42,12 @@ function confidenceColor(avg) {
 export function OriginMap({ iocs }) {
   const [mode, setMode] = useState("Volume");
   const [hovered, setHovered] = useState(null);
-  const { days } = useRange();
   const ips = useMemo(() => extractIPs(iocs), [iocs]);
   const confByIp = useMemo(() => ipConfidenceMap(iocs), [iocs]);
   const geo = useGeo(ips);
   // a disabled query never resolves, so track the no-ips case ourselves
   const loading = ips.length > 0 && geo.isPending;
 
-  // activity sparkline for the side panel, hourly at 24h
-  const spark = useMemo(() => buildActivitySeries(iocs, days), [iocs, days]);
 
   // group by country with count and average confidence
   const byCountry = useMemo(() => {
@@ -97,7 +91,11 @@ export function OriginMap({ iocs }) {
   return (
     <Group
       title="Origins"
-      description="Malicious IPs by country"
+      description={
+        mode === "Volume"
+          ? "Malicious IPs by country, brighter means more IOCs"
+          : "Average confidence of malicious IPs per country, 0 to 100"
+      }
       actions={
         <div
           className="flex overflow-hidden rounded-md border border-line"
@@ -202,7 +200,7 @@ export function OriginMap({ iocs }) {
                       width: `${Math.round((c.count / maxCount) * 100)}%`,
                       background:
                         mode === "Volume"
-                          ? "var(--color-accent)"
+                          ? "var(--color-line-strong)"
                           : confidenceColor(c.avgConf),
                     }}
                   />
@@ -213,11 +211,6 @@ export function OriginMap({ iocs }) {
               </div>
             ))
           )}
-
-          <p className="mb-1 mt-4 text-secondary font-medium text-ink-low">
-            {days === 1 ? "24-hour" : `${days}-day`} activity
-          </p>
-          <Sparkline points={spark} showLabels />
         </div>
       </div>
     </Group>

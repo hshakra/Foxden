@@ -23,7 +23,17 @@ export function Watchlist({ iocs }) {
     return { family: byFamily, tag: byTag };
   }, [iocs]);
 
-  if (watchlist.length === 0) return null;
+  if (watchlist.length === 0) {
+    // teach the affordance instead of hiding the section
+    return (
+      <Group title="Watchlist" description="What you track, activity in range">
+        <p className="text-secondary text-ink-low">
+          Nothing watched yet. Open any family or tag and press Watch to pin
+          it here.
+        </p>
+      </Group>
+    );
+  }
 
   return (
     <Group title="Watchlist" description="What you track, activity in range">

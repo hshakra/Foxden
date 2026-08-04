@@ -1,11 +1,16 @@
 import { useMemo } from "react";
 import { typeDistribution, threatDistribution } from "../lib/processor";
-import { typeColor, threatColor, THREAT_LABELS } from "../lib/colors";
+import {
+  typeColor,
+  threatColor,
+  THREAT_LABELS,
+  THREAT_TITLES,
+} from "../lib/colors";
 
 // the two distribution bars of the overview, what kind and what for
 // every segment filters the feed on click, counts sit in the legend
 
-function Bar({ label, parts, colorFor, labelFor, onClick }) {
+function Bar({ label, parts, colorFor, labelFor, titleFor, onClick }) {
   return (
     <div className="min-w-0">
       <p className="mb-1.5 text-secondary font-medium text-ink-low">{label}</p>
@@ -27,6 +32,7 @@ function Bar({ label, parts, colorFor, labelFor, onClick }) {
             key={d.type}
             type="button"
             onClick={() => onClick?.(d.type)}
+            title={titleFor?.(d.type)}
             className="flex items-center gap-1.5 transition-colors duration-150 hover:text-ink"
           >
             <span
@@ -65,6 +71,7 @@ export function CompositionBars({ iocs, onTypeClick, onThreatClick }) {
         parts={threats.slice(0, 4)}
         colorFor={threatColor}
         labelFor={(t) => THREAT_LABELS[t] ?? t}
+        titleFor={(t) => THREAT_TITLES[t]}
         onClick={onThreatClick}
       />
     </div>

@@ -103,7 +103,7 @@ function Row({ row, max, onHover }) {
           key={cell.date}
           title={`${row.name}, ${cell.date}: ${cell.count}`}
           className="h-[18px] rounded-[3px]"
-          style={{ background: heatColor(Math.sqrt(cell.count / max) * 0.85) }}
+          style={{ background: heatColor(Math.sqrt(cell.count / max)) }}
         />
       ))}
       <span className="text-right font-mono text-meta text-ink-mid tabular-nums">

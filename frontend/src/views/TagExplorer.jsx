@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import useTag from "../hooks/useTag";
+import useRecentIOCs from "../hooks/useRecentIOCs";
 import { isNoResult } from "../lib/api";
 import { TopBar } from "../components/TopBar";
 import { DetailHeader } from "../components/DetailHeader";
@@ -12,15 +13,22 @@ import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
 export default function TagExplorer() {
   const { name } = useParams();
   const tag = useTag(name);
+  const recent = useRecentIOCs();
   const [selected, setSelected] = useState(null);
 
   const iocs = useMemo(() => tag.data ?? [], [tag.data]);
+  // headline count from the range feed so it matches the index pages
+  const rangeFeed = recent.data?.current;
+  const rangeCount = useMemo(() => {
+    if (!rangeFeed) return undefined;
+    return rangeFeed.filter((i) => i.tags?.includes(name)).length;
+  }, [rangeFeed, name]);
 
   return (
     <>
       <TopBar
         title={`#${name}`}
-        subtitle="Campaign tag"
+        subtitle="Tag"
         crumbs={[{ label: "Tags", to: "/tags" }, { label: name }]}
       />
       <div className="reveal flex flex-col gap-8 p-6">
@@ -43,6 +51,7 @@ export default function TagExplorer() {
             <DetailHeader
               kind="tag"
               iocs={iocs}
+              rangeCount={rangeCount}
               watch={{ kind: "tag", name }}
             />
             <div

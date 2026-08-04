@@ -59,7 +59,7 @@ export function TagTreemap({ rows }) {
               top: `${(t.y / HEIGHT) * 100}%`,
               width: `${(t.w / WIDTH) * 100}%`,
               height: `${(t.h / HEIGHT) * 100}%`,
-              background: heatColor(0.1 + t.t * 0.7),
+              background: heatColor(0.15 + t.t * 0.85),
             }}
           >
             {t.w > 70 && t.h > 30 && (

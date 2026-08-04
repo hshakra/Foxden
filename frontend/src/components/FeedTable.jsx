@@ -103,6 +103,8 @@ export function FeedTable({
   cluster = true,
   preview = 0,
   showFamily = true,
+  // the overview embeds a short feed, the browse page gets a tall one
+  maxH = "max-h-[520px]",
 }) {
   const [minConf, setMinConf] = useState(0);
   const [familySearch, setFamilySearch] = useState("");
@@ -256,7 +258,7 @@ export function FeedTable({
           <button
             type="button"
             onClick={() => exportCsv(filtered)}
-            title="Export the filtered list as CSV"
+            title={`Export the ${filtered.length.toLocaleString()} filtered rows as CSV`}
             className="flex items-center gap-1.5 rounded-md border border-line bg-lifted px-2 py-1 text-secondary text-ink-mid transition-colors duration-150 hover:border-line-strong hover:text-ink"
           >
             <Download size={12} /> CSV
@@ -339,7 +341,7 @@ export function FeedTable({
 
         {onFamilyFilterChange && (
           <Menu
-            label={familyFilter ? `Family: ${familyFilter}` : "Family: any"}
+            label={familyFilter ? `Family: ${familyFilter}` : "Family: all"}
             active={Boolean(familyFilter)}
           >
             <span className="flex items-center gap-1.5 border-b border-line px-2.5 pb-1.5 pt-1">
@@ -409,7 +411,7 @@ export function FeedTable({
             </div>
           ) : (
             <>
-              <div ref={scrollRef} className="max-h-[520px] overflow-y-auto">
+              <div ref={scrollRef} className={`${maxH} overflow-y-auto`}>
                 <div
                   className="relative w-full"
                   style={{ height: virtualizer.getTotalSize() }}

@@ -2,11 +2,14 @@ import asyncio
 import ipaddress
 import os
 import time
+from contextlib import asynccontextmanager
+from typing import Annotated
 
 import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
@@ -14,17 +17,55 @@ from pydantic import BaseModel, Field
 # source venv/bin/activate
 
 _ = load_dotenv()
-app = FastAPI()
+
+TIMEOUT = httpx.Timeout(15.0)
+# one client for the process, reuses connections to both upstreams
+_http = httpx.AsyncClient(timeout=TIMEOUT)
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    yield
+    await _http.aclose()
+
+
+app = FastAPI(lifespan=lifespan)
+
+# responses are big json, gzip cuts the feed from megabytes to hundreds of kb
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 # naive per client rate limit
 # CORS only stops browsers, this stops anyone burning our upstream quota
 _hits: dict[str, list[float]] = {}
 RATE_LIMIT = 60  # requests per minute per client
+MAX_BODY = 64 * 1024
+
+
+def client_id(request: Request) -> str:
+    # behind a proxy the rightmost x-forwarded-for hop is written by the
+    # proxy itself, so it cannot be spoofed by the client
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[-1].strip()
+    return request.client.host if request.client else "unknown"
+
+
+@app.middleware("http")
+async def body_limit(request: Request, call_next):
+    length = request.headers.get("content-length")
+    try:
+        if length and int(length) > MAX_BODY:
+            return JSONResponse(
+                status_code=413, content={"detail": "Request too large"}
+            )
+    except ValueError:
+        return JSONResponse(status_code=400, content={"detail": "Bad request"})
+    return await call_next(request)
 
 
 @app.middleware("http")
 async def rate_limit(request: Request, call_next):
-    client_ip = request.client.host if request.client else "unknown"
+    client_ip = client_id(request)
     now = time.time()
     recent = [t for t in _hits.get(client_ip, []) if now - t < 60]
     if len(recent) >= RATE_LIMIT:
@@ -38,7 +79,11 @@ async def rate_limit(request: Request, call_next):
     return await call_next(request)
 
 # comma-separated list in prod, e.g. "https://foxden.vercel.app"
-origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+origins = [
+    o.strip()
+    for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+    if o.strip()
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -50,7 +95,6 @@ app.add_middleware(
 threatfox_api_key = os.getenv("THREATFOX_API_KEY", "")
 
 THREATFOX_URL = "https://threatfox-api.abuse.ch/api/v1/"
-TIMEOUT = httpx.Timeout(15.0)
 
 # simple TTL cache so repeat queries don't hammer ThreatFox
 _cache: dict[str, tuple[float, dict]] = {}
@@ -66,27 +110,29 @@ async def threatfox(payload: dict, cache_key: str) -> dict:
 
     # one retry, threatfox hiccups now and then
     response = None
-    async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-        for attempt in range(2):
-            try:
-                response = await client.post(
-                    THREATFOX_URL,
-                    headers={"Auth-Key": threatfox_api_key},
-                    json=payload,
-                )
-                if response.status_code == 200:
-                    break
-            except httpx.HTTPError:
-                response = None
-            if attempt == 0:
-                await asyncio.sleep(0.5)
+    for attempt in range(2):
+        try:
+            response = await _http.post(
+                THREATFOX_URL,
+                headers={"Auth-Key": threatfox_api_key},
+                json=payload,
+            )
+            if response.status_code == 200:
+                break
+        except httpx.HTTPError:
+            response = None
+        if attempt == 0:
+            await asyncio.sleep(0.5)
 
     if response is None:
         raise HTTPException(status_code=502, detail="ThreatFox is unreachable")
     if response.status_code != 200:
         raise HTTPException(status_code=502, detail="ThreatFox returned an error")
 
-    data = response.json()
+    try:
+        data = response.json()
+    except ValueError:
+        raise HTTPException(status_code=502, detail="ThreatFox returned an error")
 
     # drop oldest entries once the cache is full
     if len(_cache) >= CACHE_MAX:
@@ -196,7 +242,8 @@ def is_public_ip(value: str) -> bool:
 
 
 class GeoRequest(BaseModel):
-    ips: list[str] = Field(max_length=500)
+    # 45 chars covers the longest textual ipv6 form
+    ips: list[Annotated[str, Field(max_length=45)]] = Field(max_length=500)
 
 
 async def _lookup_batch(client: httpx.AsyncClient, batch: list[str]) -> None:
@@ -217,14 +264,18 @@ async def _lookup_batch(client: httpx.AsyncClient, batch: list[str]) -> None:
         return
     if response.status_code != 200:
         return
-    for row in response.json():
-        if row.get("status") == "success":
+    try:
+        rows = response.json()
+    except ValueError:
+        return
+    for row in rows:
+        if row.get("status") == "success" and row.get("query"):
             _geo_cache[row["query"]] = {
                 "ip": row["query"],
-                "countryCode": row["countryCode"],
-                "country": row["country"],
-                "lat": row["lat"],
-                "lon": row["lon"],
+                "countryCode": row.get("countryCode", ""),
+                "country": row.get("country", ""),
+                "lat": row.get("lat", 0),
+                "lon": row.get("lon", 0),
             }
 
 
@@ -243,10 +294,7 @@ async def get_geo(geo: GeoRequest):
         batches.append(missing[start : start + 100])
 
     if batches:
-        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-            await asyncio.gather(
-                *[_lookup_batch(client, batch) for batch in batches]
-            )
+        await asyncio.gather(*[_lookup_batch(_http, batch) for batch in batches])
 
     # keep the cache from growing forever
     if len(_geo_cache) > GEO_CACHE_MAX:

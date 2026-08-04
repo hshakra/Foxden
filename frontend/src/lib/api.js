@@ -1,7 +1,8 @@
 // central api layer, all network access goes through here
 // base url comes from VITE_API_BASE_URL in prod
 // in dev it stays empty and the vite proxy forwards /api to the backend
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+// a trailing slash in the env var would break every path, strip it
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
 async function post(path, body) {
   const resp = await fetch(`${BASE_URL}${path}`, {

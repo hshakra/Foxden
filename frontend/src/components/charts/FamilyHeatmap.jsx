@@ -47,8 +47,8 @@ export function FamilyHeatmap({ iocs }) {
       title="Campaign timing"
       description={
         hourly
-          ? "When each family was active in UTC hours, brighter means busier"
-          : "When each family was active, brighter means busier"
+          ? "When each family was active in UTC hours, brighter means busier, the first and last hours are partial"
+          : "When each family was active, brighter means busier, the first and last days are partial"
       }
     >
       <div className="overflow-x-auto">

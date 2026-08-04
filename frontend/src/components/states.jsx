@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { RefreshCw, SearchX } from "lucide-react";
 
 // loading placeholder shaped like the real content, no generic spinners
@@ -7,6 +8,25 @@ export function Skeleton({ className = "" }) {
       aria-hidden="true"
       className={`skeleton block rounded-md bg-lifted ${className}`}
     />
+  );
+}
+
+// after a while a quiet line explains the wait, threatfox has slow days
+// the skeleton alone reads as frozen once a load passes ten seconds
+function SlowNote({ delay = 10000 }) {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const id = setTimeout(() => setShow(true), delay);
+    return () => clearTimeout(id);
+  }, [delay]);
+
+  if (!show) return null;
+  return (
+    <p className="pt-4 text-center text-secondary text-ink-mid">
+      This is taking longer than usual. ThreatFox is answering slowly right
+      now, still trying.
+    </p>
   );
 }
 
@@ -22,6 +42,7 @@ export function SkeletonRows({ rows = 6 }) {
           <Skeleton className="ml-auto h-3.5 w-16" />
         </div>
       ))}
+      <SlowNote />
     </div>
   );
 }

@@ -30,8 +30,8 @@ function Freshness() {
 
   if (!label) return null;
   return (
-    <span className="hidden font-mono text-[10px] text-ink-3 tabular-nums md:inline">
-      updated {label} ago
+    <span className="hidden text-xs text-ink-3 tabular-nums md:inline">
+      Updated {label} ago
     </span>
   );
 }
@@ -53,7 +53,7 @@ export function TopBar({ title, subtitle, crumbs, children }) {
       )}
       <div className="leading-tight">
         {crumbs?.length > 0 && (
-          <p className="font-mono text-[9px] uppercase tracking-widest text-ink-3">
+          <p className="text-[11px] text-ink-3">
             {crumbs.map((c, i) => (
               <span key={c.label}>
                 {i > 0 && " / "}
@@ -68,10 +68,8 @@ export function TopBar({ title, subtitle, crumbs, children }) {
             ))}
           </p>
         )}
-        <h1 className="text-[15px] font-bold">{title}</h1>
-        {subtitle && (
-          <p className="font-mono text-[10px] text-ink-3">{subtitle}</p>
-        )}
+        <h1 className="text-[17px] font-semibold tracking-tight">{title}</h1>
+        {subtitle && <p className="text-xs text-ink-2">{subtitle}</p>}
       </div>
 
       {children}
@@ -100,9 +98,9 @@ export function TopBar({ title, subtitle, crumbs, children }) {
             role="radio"
             aria-checked={days === d}
             onClick={() => setDays(d)}
-            className={`px-2.5 py-1.5 font-mono text-[11px] transition-colors ${
+            className={`px-2.5 py-1.5 text-xs transition-colors ${
               days === d
-                ? "bg-accent text-white"
+                ? "bg-accent font-medium text-white"
                 : "text-ink-2 hover:bg-surface-2 hover:text-ink"
             }`}
           >
@@ -110,11 +108,6 @@ export function TopBar({ title, subtitle, crumbs, children }) {
           </button>
         ))}
       </div>
-
-      <span className="flex items-center gap-1.5 font-mono text-[10.5px] text-good">
-        <span className="live-pulse h-[7px] w-[7px] rounded-full bg-good" />
-        LIVE
-      </span>
 
       <Freshness />
     </div>

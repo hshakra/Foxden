@@ -64,7 +64,7 @@ export function TopFamilies({ iocs }) {
   return (
     <div className="rounded-xl border border-line bg-surface-1 p-4">
       <div className="mb-2 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-        <h4 className="text-[13px] font-semibold">Top families</h4>
+        <h4 className="text-[14px] font-semibold">Top families</h4>
         <TypeLegend />
         <Link
           to="/families"
@@ -79,13 +79,13 @@ export function TopFamilies({ iocs }) {
       >
         <span />
         <span />
-        <span className="pb-1 font-mono text-[8.5px] uppercase tracking-widest text-ink-3">
+        <span className="pb-1 text-[10.5px] font-medium text-ink-3">
           {rows[0] ? sparkRange(rows[0].spark) : "trend"}
         </span>
-        <span className="pb-1 font-mono text-[8.5px] uppercase tracking-widest text-ink-3">
+        <span className="pb-1 text-[10.5px] font-medium text-ink-3">
           mix
         </span>
-        <span className="pb-1 text-right font-mono text-[8.5px] uppercase tracking-widest text-ink-3">
+        <span className="pb-1 text-right text-[10.5px] font-medium text-ink-3">
           iocs
         </span>
         {rows.map((f, i) => (

@@ -21,7 +21,7 @@ export function FamilyProfile() {
     <>
       <TopBar
         title={name}
-        subtitle="malware family"
+        subtitle="Malware family"
         crumbs={[{ label: "Families", to: "/families" }, { label: name }]}
       />
       <div className="reveal flex flex-col gap-6 p-5">

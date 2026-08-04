@@ -21,7 +21,7 @@ export default function TagExplorer() {
     <>
       <TopBar
         title={`#${name}`}
-        subtitle="campaign tag"
+        subtitle="Campaign tag"
         crumbs={[{ label: "Tags", to: "/tags" }, { label: name }]}
       />
       <div className="reveal flex flex-col gap-6 p-5">

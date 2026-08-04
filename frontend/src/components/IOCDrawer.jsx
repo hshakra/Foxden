@@ -13,7 +13,7 @@ import { timeAgo } from "../lib/time";
 function Row({ k, children }) {
   return (
     <div className="flex items-center justify-between gap-3 border-b border-line py-1.5 text-[11px] last:border-0">
-      <span className="font-mono text-[9.5px] uppercase tracking-widest text-ink-3">
+      <span className="text-[11px] font-medium text-ink-3">
         {k}
       </span>
       <span className="min-w-0 text-right font-mono text-[10px] text-ink">
@@ -65,8 +65,8 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
     >
       <div className="mb-2 flex items-center gap-2">
         <TypeBadge type={ioc.ioc_type} />
-        <span className="font-mono text-[9px] uppercase tracking-widest text-ink-3">
-          details
+        <span className="text-[11px] font-medium text-ink-3">
+          Details
         </span>
         <button
           type="button"
@@ -106,7 +106,7 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
           {conf.label}
         </span>
         <span className="font-mono text-[10.5px] text-ink tabular-nums">
-          confidence {conf.value}
+          Confidence {conf.value}
         </span>
         <span className="ml-auto font-mono text-[10px] text-ink-2">
           {THREAT_LABELS[ioc.threat_type] ?? ioc.threat_type}
@@ -142,7 +142,7 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
       )}
       {ioc.tags?.length > 0 && (
         <div className="border-b border-line py-1.5">
-          <span className="font-mono text-[9.5px] uppercase tracking-widest text-ink-3">
+          <span className="text-[11px] font-medium text-ink-3">
             Tags
           </span>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -151,7 +151,7 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
                 key={t}
                 to={`/tag/${encodeURIComponent(t)}`}
                 onClick={onNavigate}
-                className="rounded-full border border-t-domain/25 bg-t-domain/10 px-2 py-0.5 font-mono text-[9px] text-t-domain hover:border-accent/60"
+                className="rounded-md border border-t-domain/25 bg-t-domain/10 px-2 py-0.5 font-mono text-[9px] text-t-domain hover:border-accent/60"
               >
                 {t}
               </Link>
@@ -162,7 +162,7 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
 
       {related.length > 0 && (
         <div className="border-b border-line py-1.5">
-          <span className="font-mono text-[9.5px] uppercase tracking-widest text-ink-3">
+          <span className="text-[11px] font-medium text-ink-3">
             More from {ioc.malware_printable}
           </span>
           <div className="mt-1.5 flex flex-col gap-1">

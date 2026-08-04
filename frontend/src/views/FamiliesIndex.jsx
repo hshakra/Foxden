@@ -99,7 +99,7 @@ export default function FamiliesIndex() {
 
   return (
     <>
-      <TopBar title="Families" subtitle="every family active in range" />
+      <TopBar title="Families" subtitle="Every family active in range" />
       <div className="reveal p-5">
         {recent.isPending ? (
           <SkeletonRows rows={12} />
@@ -120,13 +120,13 @@ export default function FamiliesIndex() {
             >
               {band.fresh === null && (
                 <p className="mt-0.5 font-mono text-[9.5px] text-ink-3">
-                  needs a comparison window, try 24h or 3d
+                  Needs a comparison window, try 24h or 3d
                 </p>
               )}
             </StatTile>
             <StatTile label="Top 5 share" value={`${band.concentration}%`}>
               <p className="mt-0.5 font-mono text-[9.5px] text-ink-3">
-                of all IOCs in range
+                Of all IOCs in range
               </p>
             </StatTile>
             <StatTile label="Busiest" value={band.topName} />
@@ -136,10 +136,10 @@ export default function FamiliesIndex() {
           </div>
           <div className="rounded-xl border border-line bg-surface-1 p-4">
             <div className="mb-3 flex flex-wrap items-center gap-3">
-              <h4 className="text-[13px] font-semibold">
+              <h4 className="text-[14px] font-semibold">
                 Active malware families
               </h4>
-              <span className="font-mono text-[10px] text-ink-3 tabular-nums">
+              <span className="text-xs text-ink-3 tabular-nums">
                 {shown.length} of {rows.length}
               </span>
               <TypeLegend />
@@ -163,7 +163,7 @@ export default function FamiliesIndex() {
                       type="button"
                       disabled={!c.sortable}
                       onClick={() => c.sortable && toggleSort(c.key)}
-                      className={`flex items-center gap-1 font-mono text-[9px] uppercase tracking-widest text-ink-3 ${
+                      className={`flex items-center gap-1 text-[11px] font-medium text-ink-3 ${
                         c.right ? "justify-end" : ""
                       } ${c.sortable ? "hover:text-ink" : ""} ${
                         sort.key === c.key ? "text-accent-soft" : ""

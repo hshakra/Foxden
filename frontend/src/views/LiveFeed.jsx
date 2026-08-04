@@ -57,7 +57,7 @@ export default function LiveFeed() {
 
   return (
     <>
-      <TopBar title="Overview" subtitle="global threat activity" />
+      <TopBar title="Overview" subtitle="Global threat activity in range" />
       <div className="reveal flex flex-col gap-6 p-5">
         {recent.isPending && !frozen.data ? (
           <SkeletonRows rows={10} />

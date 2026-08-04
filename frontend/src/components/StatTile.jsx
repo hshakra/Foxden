@@ -12,7 +12,7 @@ export function StatTile({ label, value, onClick, children }) {
           : ""
       }`}
     >
-      <p className="text-[10px] uppercase tracking-widest text-ink-3">
+      <p className="text-[11.5px] font-medium text-ink-3">
         {label}
       </p>
       <p className="mt-1 text-2xl font-bold tracking-tight tabular-nums">

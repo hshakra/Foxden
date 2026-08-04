@@ -12,10 +12,8 @@ export function TopTags({ iocs }) {
   return (
     <div className="rounded-xl border border-line bg-surface-1 p-4">
       <div className="mb-2 flex items-baseline gap-2.5">
-        <h4 className="text-[13px] font-semibold">Trending tags</h4>
-        <span className="font-mono text-[10px] text-ink-3">
-          most used in range
-        </span>
+        <h4 className="text-[14px] font-semibold">Trending tags</h4>
+        <span className="text-xs text-ink-2">Most used in range</span>
         <Link
           to="/tags"
           className="ml-auto font-mono text-[10px] text-accent-soft hover:underline"

@@ -71,16 +71,6 @@ body {
   100% { background-position: -200% 0; }
 }
 
-/* live feed indicator */
-.live-pulse {
-  animation: live-pulse 2s infinite;
-}
-@keyframes live-pulse {
-  0% { box-shadow: 0 0 0 0 rgb(61 220 132 / 0.5); }
-  70% { box-shadow: 0 0 0 6px rgb(61 220 132 / 0); }
-  100% { box-shadow: 0 0 0 0 rgb(61 220 132 / 0); }
-}
-
 /* single fade in on page load, the reduced motion rule below disables it */
 .reveal {
   animation: reveal 0.35s ease-out both;

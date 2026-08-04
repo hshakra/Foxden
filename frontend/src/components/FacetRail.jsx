@@ -30,7 +30,7 @@ function FacetRow({ label, count, active, swatch, onClick }) {
 function Section({ title, children }) {
   return (
     <div>
-      <p className="mb-1 font-mono text-[9px] uppercase tracking-widest text-ink-3">
+      <p className="mb-1 text-[11px] font-medium text-ink-3">
         {title}
       </p>
       {children}

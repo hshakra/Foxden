@@ -44,10 +44,8 @@ export function FamilyHeatmap({ iocs }) {
   return (
     <div className="rounded-xl border border-line bg-surface-1 p-4">
       <div className="mb-2.5 flex items-baseline gap-2.5">
-        <h4 className="text-[13px] font-semibold">Campaign timing</h4>
-        <span className="font-mono text-[10px] text-ink-3">
-          when each family was active, brighter means busier
-        </span>
+        <h4 className="text-[14px] font-semibold">Campaign timing</h4>
+        <span className="text-xs text-ink-2">When each family was active, brighter means busier</span>
       </div>
       <div className="overflow-x-auto">
         <div className="min-w-[560px]">
@@ -66,7 +64,7 @@ export function FamilyHeatmap({ iocs }) {
                 {i % labelEvery === 0 ? (hourly ? label : shortLabel(label)) : ""}
               </span>
             ))}
-            <span className="text-right font-mono text-[8px] uppercase tracking-widest text-ink-3">
+            <span className="text-right text-[10.5px] font-medium text-ink-3">
               iocs
             </span>
 

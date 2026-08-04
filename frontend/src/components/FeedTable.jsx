@@ -276,13 +276,13 @@ export function FeedTable({
   return (
     <div id="ioc-feed" className="rounded-xl border border-line bg-surface-1 p-4">
       <div className="mb-2.5 flex items-baseline gap-2.5">
-        <h4 className="text-[13px] font-semibold">{title}</h4>
-        <span className="font-mono text-[10px] text-ink-3 tabular-nums">
-          showing {Math.min(cap, filtered.length).toLocaleString()} of{" "}
+        <h4 className="text-[14px] font-semibold">{title}</h4>
+        <span className="text-xs text-ink-3 tabular-nums">
+          Showing {Math.min(cap, filtered.length).toLocaleString()} of{" "}
           {filtered.length.toLocaleString()}
         </span>
-        <span className="ml-auto hidden font-mono text-[9px] text-ink-3 lg:block">
-          j / k move, enter open, esc close
+        <span className="ml-auto hidden text-[11px] text-ink-3 lg:block">
+          j and k move, enter opens, esc closes
         </span>
         <button
           type="button"
@@ -409,7 +409,7 @@ export function FeedTable({
           <div
             role="table"
             aria-label={title}
-            className="grid grid-cols-[70px_minmax(0,1fr)_130px_120px_42px_20px] gap-2.5 border-b border-line-2 px-2 pb-1.5 font-mono text-[9px] uppercase tracking-widest text-ink-3"
+            className="grid grid-cols-[70px_minmax(0,1fr)_130px_120px_42px_20px] gap-2.5 border-b border-line-2 px-2 pb-1.5 text-[11px] font-medium text-ink-3"
           >
             <span>Type</span>
             <span>Indicator</span>

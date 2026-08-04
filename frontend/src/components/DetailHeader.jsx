@@ -9,7 +9,7 @@ import { WatchButton } from "./WatchButton";
 function Stat({ label, value, valueColor }) {
   return (
     <div>
-      <p className="font-mono text-[9.5px] uppercase tracking-widest text-ink-3">
+      <p className="text-[11px] font-medium text-ink-3">
         {label}
       </p>
       <p
@@ -70,7 +70,7 @@ export function DetailHeader({ icon: Icon, title, kind, iocs, watch }) {
         <div className="ml-auto flex items-center gap-5">
           {watch && <WatchButton kind={watch.kind} name={watch.name} />}
           <div className="min-w-[200px]">
-            <p className="mb-1 font-mono text-[9.5px] uppercase tracking-widest text-ink-3">
+            <p className="mb-1 text-[11px] font-medium text-ink-3">
               14-day activity
             </p>
             <Sparkline points={spark} showLabels />

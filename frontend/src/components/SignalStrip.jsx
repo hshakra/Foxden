@@ -112,7 +112,7 @@ export function SignalStrip({ iocs, previous = [], onTypeClick, onThreatClick })
         <p className="mt-0.5 font-mono text-[9.5px] text-ink-2 tabular-nums">
           {hasPrev
             ? `${freshFamilies} new in range`
-            : `top: ${topFamilyName(iocs)}`}
+            : `Top: ${topFamilyName(iocs)}`}
         </p>
       </StatTile>
 
@@ -136,9 +136,9 @@ export function SignalStrip({ iocs, previous = [], onTypeClick, onThreatClick })
       </StatTile>
 
       <div className="col-span-2 flex flex-col justify-center gap-1.5 rounded-xl border border-line bg-surface-1 px-3.5 py-2.5 lg:col-span-1">
-        <p className="text-[10px] uppercase tracking-widest text-ink-3">
+        <p className="text-[11.5px] font-medium text-ink-3">
           Composition
-          <span className="ml-2 normal-case tracking-normal">
+          <span className="ml-2 font-normal text-ink-3">
             click to filter the feed
           </span>
         </p>

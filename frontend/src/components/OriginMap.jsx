@@ -96,10 +96,8 @@ export function OriginMap({ iocs }) {
   return (
     <div className="rounded-xl border border-line bg-surface-1 p-4">
       <div className="mb-3 flex items-baseline gap-2.5">
-        <h4 className="text-[13px] font-semibold">Origin map</h4>
-        <span className="font-mono text-[10px] text-ink-3">
-          malicious IPs by country
-        </span>
+        <h4 className="text-[14px] font-semibold">Origin map</h4>
+        <span className="text-xs text-ink-2">Malicious IPs by country</span>
         <div
           className="ml-auto flex overflow-hidden rounded-lg border border-line font-mono text-[10px]"
           role="radiogroup"
@@ -169,7 +167,7 @@ export function OriginMap({ iocs }) {
         </div>
 
         <div>
-          <p className="mb-2 font-mono text-[9.5px] uppercase tracking-widest text-ink-3">
+          <p className="mb-2 text-[11px] font-medium text-ink-3">
             Top origins
           </p>
           {loading ? (
@@ -213,7 +211,7 @@ export function OriginMap({ iocs }) {
             ))
           )}
 
-          <p className="mb-1 mt-4 font-mono text-[9.5px] uppercase tracking-widest text-ink-3">
+          <p className="mb-1 mt-4 text-[11px] font-medium text-ink-3">
             {days === 1 ? "24-hour" : `${days}-day`} activity
           </p>
           <Sparkline points={spark} showLabels />

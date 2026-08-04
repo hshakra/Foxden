@@ -55,7 +55,7 @@ export function TrendingStrip({ iocs, previous = [] }) {
 
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface-1 p-3">
-      <span className="mr-1 flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-widest text-ink-3">
+      <span className="mr-1 flex items-center gap-1.5 text-[11px] font-medium text-ink-3">
         <Flame size={11} className="text-warn" /> Trending
       </span>
       {spikes.map((s) => (

@@ -10,10 +10,8 @@ export function TopPorts({ iocs }) {
   return (
     <div className="rounded-xl border border-line bg-surface-1 p-4">
       <div className="mb-2 flex items-baseline gap-2.5">
-        <h4 className="text-[13px] font-semibold">Top ports</h4>
-        <span className="font-mono text-[10px] text-ink-3">
-          across ip:port IOCs
-        </span>
+        <h4 className="text-[14px] font-semibold">Top ports</h4>
+        <span className="text-xs text-ink-2">Across ip:port IOCs</span>
       </div>
       {data.length === 0 ? (
         <p className="text-xs text-ink-3">No ip:port IOCs in range.</p>

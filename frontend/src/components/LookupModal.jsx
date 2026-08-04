@@ -42,7 +42,7 @@ function localMatches(iocs, term) {
 
 function SectionLabel({ children }) {
   return (
-    <p className="mb-1 mt-3 font-mono text-[9px] uppercase tracking-widest text-ink-3 first:mt-0">
+    <p className="mb-1 mt-3 text-[11px] font-medium text-ink-3 first:mt-0">
       {children}
     </p>
   );
@@ -187,7 +187,7 @@ export function LookupModal({ open, onClose }) {
                           key={tag}
                           to={`/tag/${encodeURIComponent(tag)}`}
                           onClick={close}
-                          className="flex items-center gap-1.5 rounded-full border border-t-domain/25 bg-t-domain/10 px-2.5 py-1 font-mono text-[10px] text-t-domain hover:border-accent/60"
+                          className="flex items-center gap-1.5 rounded-md border border-t-domain/25 bg-t-domain/10 px-2.5 py-1 font-mono text-[10px] text-t-domain hover:border-accent/60"
                         >
                           <Tag size={10} />
                           {tag}

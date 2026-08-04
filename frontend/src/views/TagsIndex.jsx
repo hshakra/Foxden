@@ -86,7 +86,7 @@ export default function TagsIndex() {
 
   return (
     <>
-      <TopBar title="Tags" subtitle="every tag seen in range" />
+      <TopBar title="Tags" subtitle="Every tag seen in range" />
       <div className="reveal p-5">
         {recent.isPending ? (
           <SkeletonRows rows={12} />
@@ -104,7 +104,7 @@ export default function TagsIndex() {
             <StatTile label="Top tag" value={band.topTag} />
             <StatTile label="Used once" value={band.singles}>
               <p className="mt-0.5 font-mono text-[9.5px] text-ink-3">
-                one off or noise
+                One off or noise
               </p>
             </StatTile>
             <StatTile label="IOCs tagged" value={`${band.taggedPct}%`} />
@@ -114,8 +114,8 @@ export default function TagsIndex() {
           </div>
           <div className="rounded-xl border border-line bg-surface-1 p-4">
             <div className="mb-3 flex flex-wrap items-center gap-3">
-              <h4 className="text-[13px] font-semibold">Campaign tags</h4>
-              <span className="font-mono text-[10px] text-ink-3 tabular-nums">
+              <h4 className="text-[14px] font-semibold">Campaign tags</h4>
+              <span className="text-xs text-ink-3 tabular-nums">
                 {shown.length} of {rows.length}
               </span>
               <span className="ml-auto flex min-w-[200px] items-center gap-2 rounded-lg border border-line bg-surface-0 px-2.5 py-1.5">
@@ -138,7 +138,7 @@ export default function TagsIndex() {
                       type="button"
                       disabled={!c.sortable}
                       onClick={() => c.sortable && toggleSort(c.key)}
-                      className={`flex items-center gap-1 font-mono text-[9px] uppercase tracking-widest text-ink-3 ${
+                      className={`flex items-center gap-1 text-[11px] font-medium text-ink-3 ${
                         c.right ? "justify-end" : ""
                       } ${c.sortable ? "hover:text-ink" : ""} ${
                         sort.key === c.key ? "text-accent-soft" : ""

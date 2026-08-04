@@ -26,7 +26,7 @@ export function Watchlist({ iocs }) {
   return (
     <div className="rounded-xl border border-line bg-surface-1 p-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-widest text-ink-3">
+        <span className="mr-1 flex items-center gap-1.5 text-[11px] font-medium text-ink-3">
           <Star size={11} className="text-accent-soft" /> Watchlist
         </span>
         {watchlist.map((w) => {

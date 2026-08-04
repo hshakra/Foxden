@@ -40,10 +40,8 @@ export function TagTreemap({ rows }) {
   return (
     <div className="rounded-xl border border-line bg-surface-1 p-4">
       <div className="mb-2.5 flex items-baseline gap-2.5">
-        <h4 className="text-[13px] font-semibold">Tag landscape</h4>
-        <span className="font-mono text-[10px] text-ink-3">
-          top {tiles.length} tags sized by IOC count, click to explore
-        </span>
+        <h4 className="text-[14px] font-semibold">Tag landscape</h4>
+        <span className="text-xs text-ink-2">Top {tiles.length} tags sized by IOC count, click one to explore</span>
       </div>
       <div
         className="relative w-full overflow-hidden rounded-lg"

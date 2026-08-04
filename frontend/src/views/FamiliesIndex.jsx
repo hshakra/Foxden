@@ -23,7 +23,7 @@ export default function FamiliesIndex() {
   return (
     <>
       <TopBar title="Families" subtitle="every family active in range" />
-      <div className="p-5">
+      <div className="reveal p-5">
         {recent.isPending ? (
           <SkeletonRows rows={12} />
         ) : recent.isError ? (

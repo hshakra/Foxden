@@ -19,7 +19,7 @@ export function FamilyProfile() {
   return (
     <>
       <TopBar title={name} subtitle="malware family" />
-      <div className="flex flex-col gap-6 p-5">
+      <div className="reveal flex flex-col gap-6 p-5">
         {family.isPending ? (
           <SkeletonRows rows={8} />
         ) : family.isError ? (

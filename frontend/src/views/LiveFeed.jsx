@@ -21,7 +21,7 @@ export default function LiveFeed() {
   return (
     <>
       <TopBar title="Overview" subtitle="global threat activity" />
-      <div className="flex flex-col gap-6 p-5">
+      <div className="reveal flex flex-col gap-6 p-5">
         {recent.isPending ? (
           <SkeletonRows rows={10} />
         ) : recent.isError ? (

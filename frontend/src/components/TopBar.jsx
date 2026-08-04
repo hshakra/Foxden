@@ -29,7 +29,7 @@ function Freshness() {
 
   if (!label) return null;
   return (
-    <span className="font-mono text-[10px] text-ink-3 tabular-nums">
+    <span className="hidden font-mono text-[10px] text-ink-3 tabular-nums md:inline">
       updated {label} ago
     </span>
   );
@@ -53,7 +53,7 @@ export function TopBar({ title, subtitle, children }) {
       <button
         type="button"
         onClick={openLookup}
-        className="ml-auto flex min-w-[210px] items-center gap-2 rounded-lg border border-line bg-surface-1 px-3 py-1.5 text-left text-xs text-ink-3 hover:border-line-2 hover:text-ink-2"
+        className="ml-auto hidden min-w-[210px] items-center gap-2 rounded-lg border border-line bg-surface-1 px-3 py-1.5 text-left text-xs text-ink-3 hover:border-line-2 hover:text-ink-2 md:flex"
       >
         <Search size={13} />
         Search IOC, family, or tag

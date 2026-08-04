@@ -190,6 +190,8 @@ export function FeedTable({
         )}
       </div>
 
+      <div className="overflow-x-auto">
+      <div className="min-w-[600px]">
       <div
         role="table"
         aria-label="Live IOC feed"
@@ -269,6 +271,8 @@ export function FeedTable({
           </div>
         </div>
       )}
+      </div>
+      </div>
     </div>
   );
 }

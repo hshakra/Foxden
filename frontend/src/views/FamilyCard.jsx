@@ -9,7 +9,9 @@ export function FamilyCard({ rank, name, count, max }) {
       <span className="w-4 font-mono text-[10px] text-ink-3 tabular-nums">
         {rank}
       </span>
-      <span className="truncate font-medium text-ink">{name}</span>
+      <span className="truncate font-medium text-ink" title={name}>
+        {name}
+      </span>
       <span className="ml-auto h-[5px] w-20 shrink-0 overflow-hidden rounded-sm bg-surface-0">
         <span
           className="block h-full bg-gradient-to-r from-accent to-accent-soft"

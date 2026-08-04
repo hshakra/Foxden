@@ -79,6 +79,32 @@ body {
   100% { box-shadow: 0 0 0 0 rgb(61 220 132 / 0); }
 }
 
+/* one orchestrated load reveal (rule 14) — reduced-motion rule above disables it */
+.reveal {
+  animation: reveal 0.35s ease-out both;
+}
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* quiet, console-appropriate scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-2) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-line-2);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 /* visible keyboard focus everywhere (rule 15) */
 :focus-visible {
   outline: 2px solid var(--color-accent-soft);

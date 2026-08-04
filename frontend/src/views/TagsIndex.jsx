@@ -23,7 +23,7 @@ export default function TagsIndex() {
   return (
     <>
       <TopBar title="Tags" subtitle="every tag seen in range" />
-      <div className="p-5">
+      <div className="reveal p-5">
         {recent.isPending ? (
           <SkeletonRows rows={12} />
         ) : recent.isError ? (

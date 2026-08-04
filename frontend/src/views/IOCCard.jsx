@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
-import { Copy, Check, MoreVertical } from "lucide-react";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Copy, Check, MoreVertical, ExternalLink, Shield } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { timeAgo } from "../lib/time";
 import { confidenceInfo } from "../lib/confidence";
 
@@ -121,6 +121,7 @@ export function IOCCard({ ioc, selected, onSelect, onFamilyClick }) {
         <Link
           to={`/family/${encodeURIComponent(ioc.malware_printable)}`}
           onClick={(e) => e.stopPropagation()}
+          title={ioc.malware_printable}
           className="truncate text-[11.5px] font-semibold text-accent-soft hover:underline"
         >
           {ioc.malware_printable}
@@ -133,14 +134,79 @@ export function IOCCard({ ioc, selected, onSelect, onFamilyClick }) {
         {timeAgo(ioc.first_seen)}
       </span>
 
+      <RowMenu ioc={ioc} onCopy={copyValue} />
+    </div>
+  );
+}
+
+/* per-row actions behind an overflow menu (rule 11) */
+function RowMenu({ ioc, onCopy }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!open) return;
+    function onClickAway(e) {
+      if (!ref.current?.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onClickAway);
+    return () => document.removeEventListener("mousedown", onClickAway);
+  }, [open]);
+
+  const itemClass =
+    "flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[11px] text-ink-2 hover:bg-surface-2 hover:text-ink";
+
+  return (
+    <span ref={ref} className="relative">
       <button
         type="button"
         aria-label="Row actions"
-        onClick={(e) => e.stopPropagation()}
-        className="text-ink-3 opacity-0 transition-opacity group-hover:opacity-100 hover:text-ink focus-visible:opacity-100"
+        aria-expanded={open}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+        className={`text-ink-3 transition-opacity hover:text-ink focus-visible:opacity-100 group-hover:opacity-100 ${
+          open ? "" : "opacity-0"
+        }`}
       >
         <MoreVertical size={13} />
       </button>
-    </div>
+      {open && (
+        <span
+          className="absolute right-0 top-6 z-20 w-44 overflow-hidden rounded-lg border border-line-2 bg-surface-3 py-1 shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            className={itemClass}
+            onClick={(e) => {
+              onCopy(e);
+              setOpen(false);
+            }}
+          >
+            <Copy size={12} /> Copy value
+          </button>
+          <a
+            href={`https://www.virustotal.com/gui/search/${encodeURIComponent(ioc.ioc)}`}
+            target="_blank"
+            rel="noreferrer"
+            className={itemClass}
+          >
+            <ExternalLink size={12} /> VirusTotal
+          </a>
+          <button
+            type="button"
+            className={itemClass}
+            onClick={() =>
+              navigate(`/family/${encodeURIComponent(ioc.malware_printable)}`)
+            }
+          >
+            <Shield size={12} /> Family profile
+          </button>
+        </span>
+      )}
+    </span>
   );
 }

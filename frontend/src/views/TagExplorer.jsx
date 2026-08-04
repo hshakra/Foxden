@@ -19,7 +19,7 @@ export default function TagExplorer() {
   return (
     <>
       <TopBar title={`#${name}`} subtitle="campaign tag" />
-      <div className="flex flex-col gap-6 p-5">
+      <div className="reveal flex flex-col gap-6 p-5">
         {tag.isPending ? (
           <SkeletonRows rows={8} />
         ) : tag.isError ? (

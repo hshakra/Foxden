@@ -1,7 +1,12 @@
 import { useMemo, useState } from "react";
 import DottedMap from "dotted-map";
 import useGeo from "../hooks/useGeo";
-import { extractIPs, ipConfidenceMap } from "../utils/processor";
+import {
+  extractIPs,
+  ipConfidenceMap,
+  buildDailyChart,
+} from "../utils/processor";
+import { useRange } from "../lib/range";
 import { Skeleton } from "./states";
 
 /*
@@ -25,9 +30,23 @@ function confidenceColor(avg) {
 
 export function OriginMap({ iocs }) {
   const [mode, setMode] = useState("Volume");
+  const { days } = useRange();
   const ips = useMemo(() => extractIPs(iocs), [iocs]);
   const confByIp = useMemo(() => ipConfidenceMap(iocs), [iocs]);
   const geo = useGeo(ips);
+
+  // activity sparkline for the side panel (approved layout)
+  const spark = useMemo(
+    () => buildDailyChart(iocs, Math.max(days, 7)),
+    [iocs, days],
+  );
+  const sparkMax = Math.max(...spark.map((d) => d.count), 1);
+  const sparkPoints = spark
+    .map(
+      (d, i) =>
+        `${(i / (spark.length - 1)) * 200},${44 - (d.count / sparkMax) * 38}`,
+    )
+    .join(" ");
 
   // aggregate per country: count, avg confidence, pin position
   const origins = useMemo(() => {
@@ -189,6 +208,23 @@ export function OriginMap({ iocs }) {
               </div>
             ))
           )}
+
+          <p className="mb-1 mt-4 font-mono text-[9.5px] uppercase tracking-widest text-ink-3">
+            {Math.max(days, 7)}-day activity
+          </p>
+          <svg viewBox="0 0 200 44" className="h-11 w-full" aria-hidden="true">
+            <polyline
+              fill="rgba(113,128,185,.14)"
+              stroke="none"
+              points={`0,44 ${sparkPoints} 200,44`}
+            />
+            <polyline
+              fill="none"
+              stroke="var(--color-accent)"
+              strokeWidth="1.5"
+              points={sparkPoints}
+            />
+          </svg>
         </div>
       </div>
     </div>

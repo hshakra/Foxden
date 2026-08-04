@@ -22,6 +22,8 @@ const CONF_PRESETS = [
 ];
 const CLUSTER_MIN = 4;
 const PAGE = 100;
+// stable default so the paging reset effect only fires on real changes
+const NO_FILTER = [];
 
 function buildDisplayItems(stream, expanded) {
   const items = [];
@@ -84,9 +86,9 @@ export function FeedTable({
   onSelect,
   familyFilter,
   onFamilyFilterChange,
-  typeFilter = [],
+  typeFilter = NO_FILTER,
   onTypeFilterChange,
-  threatFilter = [],
+  threatFilter = NO_FILTER,
   onThreatFilterChange,
   title = "Live IOC feed",
   cluster = true,
@@ -140,12 +142,14 @@ export function FeedTable({
 
   const cap = preview || limit;
   const visible = useMemo(() => filtered.slice(0, cap), [filtered, cap]);
+  // clustering makes no sense once the feed is filtered to one family
+  const clusterOn = cluster && !familyFilter;
   const items = useMemo(
     () =>
-      cluster
+      clusterOn
         ? buildDisplayItems(visible, expanded)
         : visible.map((ioc) => ({ kind: "ioc", ioc })),
-    [visible, expanded, cluster],
+    [visible, expanded, clusterOn],
   );
 
   const virtualizer = useVirtualizer({

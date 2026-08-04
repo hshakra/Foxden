@@ -8,6 +8,7 @@ import { NUM_TO_A2 } from "../lib/isoCodes";
 import {
   extractIPs,
   ipConfidenceMap,
+  ipIocCounts,
 } from "../lib/processor";
 import { CONF_COLORS, heatColor, heatGradient } from "../lib/colors";
 import { Skeleton } from "./states";
@@ -51,12 +52,13 @@ export function OriginMap({ iocs }) {
   const [hovered, setHovered] = useState(null);
   const ips = useMemo(() => extractIPs(iocs), [iocs]);
   const confByIp = useMemo(() => ipConfidenceMap(iocs), [iocs]);
+  const countByIp = useMemo(() => ipIocCounts(iocs), [iocs]);
   const geo = useGeo(ips);
   // a disabled query never resolves, so track the no-ips case ourselves
   const loading = ips.length > 0 && geo.isPending;
 
-
-  // group by country with count and average confidence
+  // group by country, counting iocs so the numbers match the browse page,
+  // confidence still averages per ip so one busy address cannot skew it
   const byCountry = useMemo(() => {
     const map = {};
     for (const row of geo.data ?? []) {
@@ -64,16 +66,18 @@ export function OriginMap({ iocs }) {
         code: row.countryCode,
         name: row.country,
         count: 0,
+        ips: 0,
         confSum: 0,
       });
-      entry.count += 1;
+      entry.count += countByIp[row.ip] ?? 0;
+      entry.ips += 1;
       entry.confSum += confByIp[row.ip] ?? 0;
     }
     for (const entry of Object.values(map)) {
-      entry.avgConf = Math.round(entry.confSum / entry.count);
+      entry.avgConf = Math.round(entry.confSum / entry.ips);
     }
     return map;
-  }, [geo.data, confByIp]);
+  }, [geo.data, confByIp, countByIp]);
 
   const origins = useMemo(
     () => Object.values(byCountry).sort((a, b) => b.count - a.count),

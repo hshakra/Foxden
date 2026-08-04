@@ -231,6 +231,17 @@ export function extractIPs(iocs, limit = 500) {
   return ips;
 }
 
+// ioc count per ip, so the map counts the same thing the browse page filters
+export function ipIocCounts(iocs) {
+  const map = {};
+  for (let a = 0; a < iocs.length; a++) {
+    if (iocs[a].ioc_type !== "ip:port") continue;
+    const ip = splitIpPort(iocs[a].ioc)[0];
+    map[ip] = (map[ip] || 0) + 1;
+  }
+  return map;
+}
+
 // per-IP confidence for the map, keep the strongest signal per address
 export function ipConfidenceMap(iocs) {
   const map = {};

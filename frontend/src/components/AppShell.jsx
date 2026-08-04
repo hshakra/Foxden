@@ -34,7 +34,7 @@ export function AppShell() {
 
   return (
     <LookupContext.Provider value={lookup}>
-      <div className="flex h-screen overflow-hidden bg-surface-0 text-ink">
+      <div className="flex h-screen overflow-hidden bg-bg text-ink">
         <NavRail />
         <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">
           <Outlet />

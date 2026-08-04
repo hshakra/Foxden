@@ -51,19 +51,6 @@
   /* fonts, mono is for machine data only */
   --font-sans: "Schibsted Grotesk Variable", system-ui, sans-serif;
   --font-mono: "Martian Mono Variable", ui-monospace, Menlo, monospace;
-
-  /* v1 names kept while pages migrate, delete after the sweep */
-  --color-surface-0: var(--color-bg);
-  --color-surface-1: var(--color-raised);
-  --color-surface-2: var(--color-lifted);
-  --color-surface-3: var(--color-overlay);
-  --color-line-2: var(--color-line-strong);
-  --color-ink-2: var(--color-ink-mid);
-  --color-ink-3: var(--color-ink-low);
-  --color-good: var(--color-conf-high);
-  --color-good-dim: var(--color-conf-high);
-  --color-warn: var(--color-conf-med);
-  --color-bad: var(--color-conf-low);
 }
 
 html {

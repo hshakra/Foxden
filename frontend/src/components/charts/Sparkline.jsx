@@ -67,7 +67,7 @@ export function Sparkline({
         />
       </svg>
       {showLabels && (
-        <div className="flex justify-between font-mono text-[8px] text-ink-3 tabular-nums">
+        <div className="flex justify-between font-mono text-[9px] text-ink-low tabular-nums">
           <span>{shortLabel(first)}</span>
           <span>{shortLabel(last)}</span>
         </div>
@@ -99,7 +99,7 @@ export function SparkBars({ points, height = 18, showLabels = false }) {
         ))}
       </div>
       {showLabels && (
-        <div className="flex gap-[2px] font-mono text-[7.5px] text-ink-3 tabular-nums">
+        <div className="flex gap-[2px] font-mono text-[9px] text-ink-low tabular-nums">
           {points.map((p, i) => (
             <span key={i} className="flex-1 truncate text-center">
               {i % labelEvery === 0 ? barLabel(p.date) : ""}

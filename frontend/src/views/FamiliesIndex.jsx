@@ -4,7 +4,7 @@ import { Search, ArrowUpDown } from "lucide-react";
 import useRecentIOCs from "../hooks/useRecentIOCS.js";
 import { TopBar } from "../components/TopBar";
 import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
-import { buildDailyChart, computeKpis } from "../utils/processor";
+import { buildDailyChart, computeKpis, newFamilies } from "../utils/processor";
 import { confidenceInfo } from "../lib/confidence";
 import { CONF_COLORS, typeColor } from "../lib/colors";
 import { parseThreatFoxDate, timeAgo } from "../lib/time";
@@ -14,8 +14,8 @@ import { Sparkline } from "../components/charts/Sparkline";
 import { sparkRange } from "../lib/chartLabels";
 import { TypeLegend } from "../components/charts/TypeLegend";
 import { FamilyHeatmap } from "../components/charts/FamilyHeatmap";
-import { StatTile } from "../components/StatTile";
-import { newFamilies } from "../utils/processor";
+import { StatTile } from "../components/ui/StatTile";
+import { Group } from "../components/ui/Group";
 
 // families as a sortable table
 // count, confidence, trend, and type mix per family so the page answers
@@ -75,7 +75,8 @@ export default function FamiliesIndex() {
     const top5 = sorted.slice(0, 5).reduce((sum, r) => sum + r.count, 0);
     return {
       fresh: previous?.length ? newFamilies(iocs ?? [], previous) : null,
-      topName: sorted[0]?.name ?? "n/a",
+      topName: sorted[0]?.name ?? "",
+      topCount: sorted[0]?.count ?? 0,
       concentration: total ? Math.round((top5 / total) * 100) : 0,
     };
   }, [rows, iocs, previous]);
@@ -100,7 +101,7 @@ export default function FamiliesIndex() {
   return (
     <>
       <TopBar title="Families" subtitle="Every family active in range" />
-      <div className="reveal p-5">
+      <div className="reveal flex flex-col gap-8 p-6">
         {recent.isPending ? (
           <SkeletonRows rows={12} />
         ) : recent.isError ? (
@@ -112,125 +113,141 @@ export default function FamiliesIndex() {
           />
         ) : (
           <>
-          <div className="mb-4 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-            <StatTile label="Families" value={rows.length} />
-            <StatTile
-              label="New in range"
-              value={band.fresh === null ? "n/a" : band.fresh}
+            <Group
+              title="At a glance"
+              description="How concentrated family activity is right now"
             >
-              {band.fresh === null && (
-                <p className="mt-0.5 font-mono text-[9.5px] text-ink-3">
-                  Needs a comparison window, try 24h or 3d
-                </p>
-              )}
-            </StatTile>
-            <StatTile label="Top 5 share" value={`${band.concentration}%`}>
-              <p className="mt-0.5 font-mono text-[9.5px] text-ink-3">
-                Of all IOCs in range
-              </p>
-            </StatTile>
-            <StatTile label="Busiest" value={band.topName} />
-          </div>
-          <div className="mb-4">
-            <FamilyHeatmap iocs={iocs ?? []} />
-          </div>
-          <div className="rounded-xl border border-line bg-surface-1 p-4">
-            <div className="mb-3 flex flex-wrap items-center gap-3">
-              <h4 className="text-[14px] font-semibold">
-                Active malware families
-              </h4>
-              <span className="text-xs text-ink-3 tabular-nums">
-                {shown.length} of {rows.length}
-              </span>
-              <TypeLegend />
-              <span className="ml-auto flex min-w-[200px] items-center gap-2 rounded-lg border border-line bg-surface-0 px-2.5 py-1.5">
-                <Search size={12} className="text-ink-3" />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Filter families"
-                  className="w-full bg-transparent font-mono text-[11px] text-ink placeholder:text-ink-3 focus:outline-none"
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                <StatTile
+                  label="Families"
+                  value={rows.length.toLocaleString()}
+                  comparison="active in range"
                 />
-              </span>
-            </div>
-
-            <div className="overflow-x-auto">
-              <div className="min-w-[680px]">
-                <div className="grid grid-cols-[minmax(0,1fr)_64px_90px_88px_90px_80px] items-center gap-x-3 border-b border-line-2 px-2 pb-1.5">
-                  {COLUMNS.map((c) => (
-                    <button
-                      key={c.key}
-                      type="button"
-                      disabled={!c.sortable}
-                      onClick={() => c.sortable && toggleSort(c.key)}
-                      className={`flex items-center gap-1 text-[11px] font-medium text-ink-3 ${
-                        c.right ? "justify-end" : ""
-                      } ${c.sortable ? "hover:text-ink" : ""} ${
-                        sort.key === c.key ? "text-accent-soft" : ""
-                      }`}
-                    >
-                      {c.key === "trend" && shown[0]
-                        ? sparkRange(shown[0].spark)
-                        : c.label}
-                      {c.sortable && <ArrowUpDown size={9} />}
-                    </button>
-                  ))}
-                </div>
-
-                {shown.map((r) => {
-                  const conf = confidenceInfo(r.conf);
-                  return (
-                    <Link
-                      key={r.name}
-                      to={`/family/${encodeURIComponent(r.name)}`}
-                      onMouseEnter={() => prefetchFamily(r.name)}
-                      className="grid grid-cols-[minmax(0,1fr)_64px_90px_88px_90px_80px] items-center gap-x-3 border-b border-line px-2 py-1.5 text-xs last:border-0 hover:bg-surface-2/50"
-                    >
-                      <span
-                        className="truncate font-semibold text-accent-soft"
-                        title={r.name}
-                      >
-                        {r.name}
-                      </span>
-                      <span className="text-right font-mono text-[10.5px] tabular-nums">
-                        {r.count}
-                      </span>
-                      <span
-                        className="font-mono text-[10px] tabular-nums"
-                        style={{
-                          color:
-                            conf.tone === "quiet"
-                              ? "var(--color-ink-2)"
-                              : CONF_COLORS[conf.tone],
-                        }}
-                      >
-                        {r.conf} {conf.label}
-                      </span>
-                      <span className="w-[72px]">
-                        <Sparkline points={r.spark} width={72} height={22} />
-                      </span>
-                      <span className="flex h-[5px] w-[76px] gap-[2px]">
-                        {r.mix.map((p) => (
-                          <span
-                            key={p.type}
-                            title={`${p.type} ${p.pct}%`}
-                            className="rounded-[1px]"
-                            style={{
-                              width: `${p.pct}%`,
-                              background: typeColor(p.type),
-                            }}
-                          />
-                        ))}
-                      </span>
-                      <span className="text-right font-mono text-[10px] text-ink-3 tabular-nums">
-                        {timeAgo(new Date(r.lastSeen))}
-                      </span>
-                    </Link>
-                  );
-                })}
+                <StatTile
+                  label="New in range"
+                  value={band.fresh === null ? undefined : band.fresh}
+                  comparison={
+                    band.fresh === null
+                      ? "needs a comparison window, pick 24h or 3d"
+                      : "not seen in the previous window"
+                  }
+                />
+                <StatTile
+                  label="Top 5 share"
+                  value={`${band.concentration}%`}
+                  comparison="of all IOCs in range"
+                />
+                <StatTile
+                  label="Busiest"
+                  value={
+                    <span className="block truncate font-sans">
+                      {band.topName}
+                    </span>
+                  }
+                  comparison={`${band.topCount.toLocaleString()} IOCs`}
+                />
               </div>
-            </div>
-          </div>
+            </Group>
+
+            <FamilyHeatmap iocs={iocs ?? []} />
+
+            <Group
+              title="All families"
+              description={`${shown.length} of ${rows.length} shown`}
+              actions={
+                <span className="flex min-w-[200px] items-center gap-2 rounded-md border border-line bg-lifted px-2.5 py-1.5">
+                  <Search size={12} className="text-ink-low" />
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Filter families"
+                    className="w-full bg-transparent text-secondary text-ink placeholder:text-ink-low focus:outline-none"
+                  />
+                </span>
+              }
+            >
+              <div className="mb-1.5">
+                <TypeLegend />
+              </div>
+              <div className="overflow-x-auto">
+                <div className="min-w-[680px]">
+                  <div className="grid grid-cols-[minmax(0,1fr)_64px_90px_96px_90px_80px] items-center gap-x-3 border-b border-line px-2 pb-2">
+                    {COLUMNS.map((c) => (
+                      <button
+                        key={c.key}
+                        type="button"
+                        disabled={!c.sortable}
+                        onClick={() => c.sortable && toggleSort(c.key)}
+                        className={`flex items-center gap-1 text-secondary font-medium whitespace-nowrap ${
+                          c.right ? "justify-end" : ""
+                        } ${
+                          sort.key === c.key
+                            ? "text-accent-soft"
+                            : "text-ink-low"
+                        } ${c.sortable ? "hover:text-ink" : ""}`}
+                      >
+                        {c.key === "trend" && shown[0]
+                          ? sparkRange(shown[0].spark)
+                          : c.label}
+                        {c.sortable && <ArrowUpDown size={10} />}
+                      </button>
+                    ))}
+                  </div>
+
+                  {shown.map((r) => {
+                    const conf = confidenceInfo(r.conf);
+                    return (
+                      <Link
+                        key={r.name}
+                        to={`/family/${encodeURIComponent(r.name)}`}
+                        onMouseEnter={() => prefetchFamily(r.name)}
+                        className="grid h-10 grid-cols-[minmax(0,1fr)_64px_90px_96px_90px_80px] items-center gap-x-3 border-b border-line px-2 text-body transition-colors duration-150 hover:bg-raised"
+                      >
+                        <span
+                          className="truncate font-medium text-accent-soft"
+                          title={r.name}
+                        >
+                          {r.name}
+                        </span>
+                        <span className="text-right font-mono text-secondary tabular-nums">
+                          {r.count}
+                        </span>
+                        <span
+                          className="font-mono text-secondary tabular-nums"
+                          style={{
+                            color:
+                              conf.tone === "quiet"
+                                ? "var(--color-ink-mid)"
+                                : CONF_COLORS[conf.tone],
+                          }}
+                        >
+                          {r.conf} {conf.label}
+                        </span>
+                        <span className="w-[88px]">
+                          <Sparkline points={r.spark} width={88} height={22} />
+                        </span>
+                        <span className="flex h-[5px] w-[76px] gap-[2px]">
+                          {r.mix.map((p) => (
+                            <span
+                              key={p.type}
+                              title={`${p.type} ${p.pct}%`}
+                              className="rounded-[1px]"
+                              style={{
+                                width: `${p.pct}%`,
+                                background: typeColor(p.type),
+                              }}
+                            />
+                          ))}
+                        </span>
+                        <span className="text-right font-mono text-meta text-ink-low tabular-nums">
+                          {timeAgo(new Date(r.lastSeen))}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            </Group>
           </>
         )}
       </div>

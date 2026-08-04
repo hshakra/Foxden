@@ -5,9 +5,10 @@ import { shortLabel } from "../../lib/chartLabels";
 import { usePrefetchFamily } from "../../hooks/useFamily";
 import { useRange } from "../../lib/range";
 import { heatColor } from "../../lib/colors";
+import { Group } from "../ui/Group";
 
 // the families page hero, campaign timing at a glance
-// one row per family, one cell per day (or hour at 24h), darker means busier
+// one row per family, one cell per day (or hour at 24h)
 const MAX_ROWS = 12;
 
 export function FamilyHeatmap({ iocs }) {
@@ -42,11 +43,10 @@ export function FamilyHeatmap({ iocs }) {
   const labelEvery = hourly ? 6 : 1;
 
   return (
-    <div className="rounded-xl border border-line bg-surface-1 p-4">
-      <div className="mb-2.5 flex items-baseline gap-2.5">
-        <h4 className="text-[14px] font-semibold">Campaign timing</h4>
-        <span className="text-xs text-ink-2">When each family was active, brighter means busier</span>
-      </div>
+    <Group
+      title="Campaign timing"
+      description="When each family was active, brighter means busier"
+    >
       <div className="overflow-x-auto">
         <div className="min-w-[560px]">
           <div
@@ -59,13 +59,13 @@ export function FamilyHeatmap({ iocs }) {
             {grid.labels.map((label, i) => (
               <span
                 key={label}
-                className="truncate text-center font-mono text-[8px] text-ink-3"
+                className="truncate text-center font-mono text-[10px] text-ink-low"
               >
                 {i % labelEvery === 0 ? (hourly ? label : shortLabel(label)) : ""}
               </span>
             ))}
-            <span className="text-right text-[10.5px] font-medium text-ink-3">
-              iocs
+            <span className="text-right text-secondary font-medium text-ink-low">
+              IOCs
             </span>
 
             {grid.rows.map((row) => (
@@ -79,7 +79,7 @@ export function FamilyHeatmap({ iocs }) {
           </div>
         </div>
       </div>
-    </div>
+    </Group>
   );
 }
 
@@ -90,7 +90,7 @@ function Row({ row, max, onHover }) {
         to={`/family/${encodeURIComponent(row.name)}`}
         onMouseEnter={onHover}
         title={row.name}
-        className="truncate text-xs font-semibold text-accent-soft hover:underline"
+        className="truncate text-secondary font-medium text-accent-soft hover:underline"
       >
         {row.name}
       </Link>
@@ -102,7 +102,7 @@ function Row({ row, max, onHover }) {
           style={{ background: heatColor(Math.sqrt(cell.count / max) * 0.85) }}
         />
       ))}
-      <span className="text-right font-mono text-[10px] text-ink-2 tabular-nums">
+      <span className="text-right font-mono text-meta text-ink-mid tabular-nums">
         {row.total}
       </span>
     </>

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { hierarchy, treemap, treemapSquarify } from "d3-hierarchy";
 import { heatColor } from "../../lib/colors";
+import { Group } from "../ui/Group";
 
 // the tags page hero, every big tag as a tile sized by how often it is used
 // click a tile to open the tag
@@ -38,11 +39,10 @@ export function TagTreemap({ rows }) {
   if (tiles.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-line bg-surface-1 p-4">
-      <div className="mb-2.5 flex items-baseline gap-2.5">
-        <h4 className="text-[14px] font-semibold">Tag landscape</h4>
-        <span className="text-xs text-ink-2">Top {tiles.length} tags sized by IOC count, click one to explore</span>
-      </div>
+    <Group
+      title="Tag landscape"
+      description={`Top ${tiles.length} tags sized by IOC count, brighter means busier, click one to explore`}
+    >
       <div
         className="relative w-full overflow-hidden rounded-lg"
         style={{ aspectRatio: `${WIDTH} / ${HEIGHT}` }}
@@ -53,7 +53,7 @@ export function TagTreemap({ rows }) {
             type="button"
             onClick={() => navigate(`/tag/${encodeURIComponent(t.tag)}`)}
             title={`${t.tag}, ${t.count.toLocaleString()} IOCs`}
-            className="group absolute overflow-hidden rounded-[4px] text-left transition-transform hover:z-10 hover:scale-[1.03]"
+            className="absolute overflow-hidden rounded-[4px] text-left transition-[filter] duration-150 hover:brightness-110"
             style={{
               left: `${(t.x / WIDTH) * 100}%`,
               top: `${(t.y / HEIGHT) * 100}%`,
@@ -65,12 +65,14 @@ export function TagTreemap({ rows }) {
             {t.w > 70 && t.h > 30 && (
               <span
                 className="absolute inset-0 flex flex-col justify-end p-1.5"
-                style={{ color: t.t > 0.75 ? "#10131a" : "var(--color-ink)" }}
+                style={{
+                  color: t.t > 0.75 ? "var(--color-bg)" : "var(--color-ink)",
+                }}
               >
-                <span className="truncate font-mono text-[9.5px] font-bold">
+                <span className="truncate font-mono text-[10px] font-medium">
                   {t.tag}
                 </span>
-                <span className="font-mono text-[8.5px] opacity-75 tabular-nums">
+                <span className="font-mono text-[9px] opacity-75 tabular-nums">
                   {t.count.toLocaleString()}
                 </span>
               </span>
@@ -78,6 +80,6 @@ export function TagTreemap({ rows }) {
           </button>
         ))}
       </div>
-    </div>
+    </Group>
   );
 }

@@ -9,8 +9,10 @@ function FacetRow({ label, count, active, swatch, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-[11.5px] transition-colors ${
-        active ? "bg-surface-2 text-ink" : "text-ink-2 hover:bg-surface-2/50"
+      className={`flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-secondary transition-colors duration-150 ${
+        active
+          ? "bg-lifted text-ink shadow-[inset_2px_0_0_var(--color-accent)]"
+          : "text-ink-mid hover:bg-lifted/60"
       }`}
     >
       {swatch && (
@@ -20,7 +22,7 @@ function FacetRow({ label, count, active, swatch, onClick }) {
         />
       )}
       <span className="truncate">{label}</span>
-      <span className="ml-auto font-mono text-[10px] text-ink-3 tabular-nums">
+      <span className="ml-auto font-mono text-meta text-ink-low tabular-nums">
         {count.toLocaleString()}
       </span>
     </button>
@@ -30,9 +32,7 @@ function FacetRow({ label, count, active, swatch, onClick }) {
 function Section({ title, children }) {
   return (
     <div>
-      <p className="mb-1 text-[11px] font-medium text-ink-3">
-        {title}
-      </p>
+      <p className="mb-1 text-meta font-medium text-ink-low">{title}</p>
       {children}
     </div>
   );
@@ -74,7 +74,7 @@ export function FacetRail({
   }
 
   return (
-    <aside className="flex h-fit flex-col gap-4 rounded-xl border border-line bg-surface-1 p-3">
+    <aside className="flex h-fit flex-col gap-4 rounded-lg border border-line bg-raised p-3">
       <Section title="Type">
         {facets.types.map(([type, count]) => (
           <FacetRow

@@ -21,7 +21,7 @@ export default function IOCBrowse() {
   return (
     <>
       <TopBar title="IOCs" subtitle="Browse all indicators in range" />
-      <div className="reveal p-5">
+      <div className="reveal p-6">
         {recent.isPending ? (
           <SkeletonRows rows={12} />
         ) : recent.isError ? (

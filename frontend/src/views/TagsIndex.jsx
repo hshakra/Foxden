@@ -4,7 +4,8 @@ import { Search, ArrowUpDown } from "lucide-react";
 import useRecentIOCs from "../hooks/useRecentIOCS.js";
 import { TopBar } from "../components/TopBar";
 import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
-import { StatTile } from "../components/StatTile";
+import { StatTile } from "../components/ui/StatTile";
+import { Group } from "../components/ui/Group";
 import { TagTreemap } from "../components/charts/TagTreemap";
 
 // tags as a sortable table with the long tail collapsed
@@ -73,7 +74,8 @@ export default function TagsIndex() {
     }
     return {
       singles,
-      topTag: sorted[0]?.tag ?? "n/a",
+      topTag: sorted[0]?.tag ?? "",
+      topCount: sorted[0]?.count ?? 0,
       taggedPct: total ? Math.round((tagged / total) * 100) : 0,
     };
   }, [rows, iocs]);
@@ -87,7 +89,7 @@ export default function TagsIndex() {
   return (
     <>
       <TopBar title="Tags" subtitle="Every tag seen in range" />
-      <div className="reveal p-5">
+      <div className="reveal flex flex-col gap-8 p-6">
         {recent.isPending ? (
           <SkeletonRows rows={12} />
         ) : recent.isError ? (
@@ -99,97 +101,116 @@ export default function TagsIndex() {
           />
         ) : (
           <>
-          <div className="mb-4 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-            <StatTile label="Tags" value={rows.length} />
-            <StatTile label="Top tag" value={band.topTag} />
-            <StatTile label="Used once" value={band.singles}>
-              <p className="mt-0.5 font-mono text-[9.5px] text-ink-3">
-                One off or noise
-              </p>
-            </StatTile>
-            <StatTile label="IOCs tagged" value={`${band.taggedPct}%`} />
-          </div>
-          <div className="mb-4">
-            <TagTreemap rows={rows} />
-          </div>
-          <div className="rounded-xl border border-line bg-surface-1 p-4">
-            <div className="mb-3 flex flex-wrap items-center gap-3">
-              <h4 className="text-[14px] font-semibold">Campaign tags</h4>
-              <span className="text-xs text-ink-3 tabular-nums">
-                {shown.length} of {rows.length}
-              </span>
-              <span className="ml-auto flex min-w-[200px] items-center gap-2 rounded-lg border border-line bg-surface-0 px-2.5 py-1.5">
-                <Search size={12} className="text-ink-3" />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Filter tags"
-                  className="w-full bg-transparent font-mono text-[11px] text-ink placeholder:text-ink-3 focus:outline-none"
+            <Group
+              title="At a glance"
+              description="How well labeled the window is"
+            >
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                <StatTile
+                  label="Tags"
+                  value={rows.length.toLocaleString()}
+                  comparison="seen in range"
                 />
-              </span>
-            </div>
-
-            <div className="overflow-x-auto">
-              <div className="min-w-[560px]">
-                <div className="grid grid-cols-[minmax(0,1fr)_64px_72px_minmax(0,1fr)] items-center gap-x-3 border-b border-line-2 px-2 pb-1.5">
-                  {COLUMNS.map((c) => (
-                    <button
-                      key={c.key}
-                      type="button"
-                      disabled={!c.sortable}
-                      onClick={() => c.sortable && toggleSort(c.key)}
-                      className={`flex items-center gap-1 text-[11px] font-medium text-ink-3 ${
-                        c.right ? "justify-end" : ""
-                      } ${c.sortable ? "hover:text-ink" : ""} ${
-                        sort.key === c.key ? "text-accent-soft" : ""
-                      }`}
-                    >
-                      {c.label}
-                      {c.sortable && <ArrowUpDown size={9} />}
-                    </button>
-                  ))}
-                </div>
-
-                {visible.map((r) => (
-                  <Link
-                    key={r.tag}
-                    to={`/tag/${encodeURIComponent(r.tag)}`}
-                    className="grid grid-cols-[minmax(0,1fr)_64px_72px_minmax(0,1fr)] items-center gap-x-3 border-b border-line px-2 py-1.5 text-xs last:border-0 hover:bg-surface-2/50"
-                  >
-                    <span
-                      className="truncate font-mono text-[10.5px] text-t-domain"
-                      title={r.tag}
-                    >
-                      {r.tag}
-                    </span>
-                    <span className="text-right font-mono text-[10.5px] tabular-nums">
-                      {r.count}
-                    </span>
-                    <span className="text-right font-mono text-[10.5px] text-ink-2 tabular-nums">
-                      {r.familyCount}
-                    </span>
-                    <span
-                      className="truncate text-[11px] text-accent-soft"
-                      title={r.topFamily}
-                    >
-                      {r.topFamily}
-                    </span>
-                  </Link>
-                ))}
-
-                {shown.length > limit && (
-                  <button
-                    type="button"
-                    onClick={() => setLimit((n) => n + PAGE)}
-                    className="mt-2 w-full rounded-lg border border-dashed border-line-2 py-2 font-mono text-[10.5px] text-ink-2 hover:border-accent/50 hover:text-ink"
-                  >
-                    show {Math.min(PAGE, shown.length - limit)} more,{" "}
-                    {shown.length - limit} remaining
-                  </button>
-                )}
+                <StatTile
+                  label="Top tag"
+                  value={
+                    <span className="block truncate">{band.topTag}</span>
+                  }
+                  comparison={`${band.topCount.toLocaleString()} IOCs`}
+                />
+                <StatTile
+                  label="Used once"
+                  value={band.singles.toLocaleString()}
+                  comparison="one off or noise"
+                />
+                <StatTile
+                  label="IOCs tagged"
+                  value={`${band.taggedPct}%`}
+                  comparison="of all IOCs in range"
+                />
               </div>
-            </div>
-          </div>
+            </Group>
+
+            <TagTreemap rows={rows} />
+
+            <Group
+              title="All tags"
+              description={`${shown.length} of ${rows.length} shown`}
+              actions={
+                <span className="flex min-w-[200px] items-center gap-2 rounded-md border border-line bg-lifted px-2.5 py-1.5">
+                  <Search size={12} className="text-ink-low" />
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Filter tags"
+                    className="w-full bg-transparent text-secondary text-ink placeholder:text-ink-low focus:outline-none"
+                  />
+                </span>
+              }
+            >
+              <div className="overflow-x-auto">
+                <div className="min-w-[560px]">
+                  <div className="grid grid-cols-[minmax(0,1fr)_64px_72px_minmax(0,1fr)] items-center gap-x-3 border-b border-line px-2 pb-2">
+                    {COLUMNS.map((c) => (
+                      <button
+                        key={c.key}
+                        type="button"
+                        disabled={!c.sortable}
+                        onClick={() => c.sortable && toggleSort(c.key)}
+                        className={`flex items-center gap-1 text-secondary font-medium ${
+                          c.right ? "justify-end" : ""
+                        } ${
+                          sort.key === c.key
+                            ? "text-accent-soft"
+                            : "text-ink-low"
+                        } ${c.sortable ? "hover:text-ink" : ""}`}
+                      >
+                        {c.label}
+                        {c.sortable && <ArrowUpDown size={10} />}
+                      </button>
+                    ))}
+                  </div>
+
+                  {visible.map((r) => (
+                    <Link
+                      key={r.tag}
+                      to={`/tag/${encodeURIComponent(r.tag)}`}
+                      className="grid h-10 grid-cols-[minmax(0,1fr)_64px_72px_minmax(0,1fr)] items-center gap-x-3 border-b border-line px-2 text-body transition-colors duration-150 hover:bg-raised"
+                    >
+                      <span
+                        className="truncate font-mono text-secondary text-accent-soft"
+                        title={r.tag}
+                      >
+                        {r.tag}
+                      </span>
+                      <span className="text-right font-mono text-secondary tabular-nums">
+                        {r.count}
+                      </span>
+                      <span className="text-right font-mono text-secondary text-ink-mid tabular-nums">
+                        {r.familyCount}
+                      </span>
+                      <span
+                        className="truncate text-secondary text-ink-mid"
+                        title={r.topFamily}
+                      >
+                        {r.topFamily}
+                      </span>
+                    </Link>
+                  ))}
+
+                  {shown.length > limit && (
+                    <button
+                      type="button"
+                      onClick={() => setLimit((n) => n + PAGE)}
+                      className="mt-2 w-full rounded-md border border-dashed border-line-strong py-2 text-secondary text-ink-mid transition-colors duration-150 hover:border-accent/50 hover:text-ink"
+                    >
+                      Show {Math.min(PAGE, shown.length - limit)} more,{" "}
+                      {shown.length - limit} remaining
+                    </button>
+                  )}
+                </div>
+              </div>
+            </Group>
           </>
         )}
       </div>

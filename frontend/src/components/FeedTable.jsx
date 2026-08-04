@@ -146,6 +146,7 @@ export function FeedTable({
   onThreatFilterChange,
   title = "Live IOC feed",
   cluster = true,
+  preview = 0,
 }) {
   const [minConf, setMinConf] = useState(0);
   const [familySearch, setFamilySearch] = useState("");
@@ -192,7 +193,8 @@ export function FeedTable({
     setLimit(PAGE);
   }, [typeFilter, threatFilter, minConf, familyFilter, iocs]);
 
-  const visible = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
+  const cap = preview || limit;
+  const visible = useMemo(() => filtered.slice(0, cap), [filtered, cap]);
   const items = useMemo(
     () =>
       cluster
@@ -276,7 +278,7 @@ export function FeedTable({
       <div className="mb-2.5 flex items-baseline gap-2.5">
         <h4 className="text-[13px] font-semibold">{title}</h4>
         <span className="font-mono text-[10px] text-ink-3 tabular-nums">
-          showing {Math.min(limit, filtered.length).toLocaleString()} of{" "}
+          showing {Math.min(cap, filtered.length).toLocaleString()} of{" "}
           {filtered.length.toLocaleString()}
         </span>
         <span className="ml-auto hidden font-mono text-[9px] text-ink-3 lg:block">
@@ -487,7 +489,7 @@ export function FeedTable({
                   })}
                 </div>
               </div>
-              {filtered.length > limit && (
+              {!preview && filtered.length > limit && (
                 <button
                   type="button"
                   onClick={() => setLimit((n) => n + PAGE)}

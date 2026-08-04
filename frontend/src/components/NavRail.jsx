@@ -1,10 +1,11 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutGrid, Shield, Tag, Search } from "lucide-react";
+import { LayoutGrid, List, Shield, Tag, Search } from "lucide-react";
 import { FoxLogo } from "./FoxLogo";
 import { useLookup } from "../lib/lookup";
 
 const items = [
   { to: "/", label: "Overview", icon: LayoutGrid, match: (p) => p === "/" },
+  { to: "/iocs", label: "IOCs", icon: List, match: (p) => p.startsWith("/iocs") },
   {
     to: "/families",
     label: "Families",

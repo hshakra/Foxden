@@ -77,8 +77,11 @@ export function Sparkline({
 }
 
 // tiny bars for the kpi tiles, same data shape as the sparkline
+// each bar carries its own day (or hour) label underneath
 export function SparkBars({ points, height = 18, showLabels = false }) {
   const max = Math.max(...points.map((p) => p.count), 1);
+  // hourly series only label every sixth bar so it stays readable
+  const labelEvery = points.length > 12 ? 6 : 1;
   return (
     <div>
       <div
@@ -95,13 +98,25 @@ export function SparkBars({ points, height = 18, showLabels = false }) {
           />
         ))}
       </div>
-      {showLabels && points.length > 0 && (
-        <div className="flex justify-between font-mono text-[8px] text-ink-3 tabular-nums">
-          <span>{shortLabel(points[0].date)}</span>
-          <span>{shortLabel(points[points.length - 1].date)}</span>
+      {showLabels && (
+        <div className="flex gap-[2px] font-mono text-[7.5px] text-ink-3 tabular-nums">
+          {points.map((p, i) => (
+            <span key={i} className="flex-1 truncate text-center">
+              {i % labelEvery === 0 ? barLabel(p.date) : ""}
+            </span>
+          ))}
         </div>
       )}
     </div>
   );
+}
+
+// "2026-08-04" reads as "8/4", hourly "17:00" reads as "17h"
+// slash dates cannot be mistaken for counts
+function barLabel(date) {
+  if (!date) return "";
+  if (date.includes(":")) return `${Number(date.slice(0, 2))}h`;
+  const [, month, day] = date.split("-");
+  return `${Number(month)}/${Number(day)}`;
 }
 

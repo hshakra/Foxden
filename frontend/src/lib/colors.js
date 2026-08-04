@@ -39,6 +39,20 @@ export function typeColor(type) {
   return TYPE_COLORS[type] ?? "var(--color-slate)";
 }
 
+// thermal ramp for intensity charts, a little warmer than the chrome
+// deep indigo through glaucous, peaking at a muted sand, never neon
+const RAMP = ["#262c47", "#4a5686", "#7180b9", "#93a3d6", "#bfae8a"];
+
+export function heatColor(t) {
+  if (t <= 0) return "var(--color-surface-0)";
+  const clamped = Math.min(1, Math.max(0, t));
+  const scaled = clamped * (RAMP.length - 1);
+  const low = Math.floor(scaled);
+  const high = Math.min(low + 1, RAMP.length - 1);
+  const mix = Math.round((scaled - low) * 100);
+  return `color-mix(in oklab, ${RAMP[high]} ${mix}%, ${RAMP[low]})`;
+}
+
 export function threatColor(threat) {
   return THREAT_COLORS[threat] ?? THREAT_COLORS.other;
 }

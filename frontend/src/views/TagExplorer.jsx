@@ -60,7 +60,11 @@ export default function TagExplorer() {
                 title="Tagged IOCs"
               />
               {selected && (
-                <IOCDrawer ioc={selected} onClose={() => setSelected(null)} />
+                <IOCDrawer
+                  ioc={selected}
+                  onClose={() => setSelected(null)}
+                  pool={iocs}
+                />
               )}
             </div>
             <TopFamilies iocs={iocs} />

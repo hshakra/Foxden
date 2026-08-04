@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { hierarchy, treemap, treemapSquarify } from "d3-hierarchy";
+import { heatColor } from "../../lib/colors";
 
 // the tags page hero, every big tag as a tile sized by how often it is used
 // click a tile to open the tag
@@ -60,22 +61,18 @@ export function TagTreemap({ rows }) {
               top: `${(t.y / HEIGHT) * 100}%`,
               width: `${(t.w / WIDTH) * 100}%`,
               height: `${(t.h / HEIGHT) * 100}%`,
-              background:
-                t.t > 0.65
-                  ? `color-mix(in oklab, #b9c6ff ${Math.round(
-                      (t.t - 0.65) * 160,
-                    )}%, var(--color-accent))`
-                  : `color-mix(in oklab, var(--color-accent) ${Math.round(
-                      15 + t.t * 120,
-                    )}%, var(--color-surface-2))`,
+              background: heatColor(0.1 + t.t * 0.7),
             }}
           >
             {t.w > 70 && t.h > 30 && (
-              <span className="absolute inset-0 flex flex-col justify-end p-1.5">
-                <span className="truncate font-mono text-[9.5px] font-bold text-ink">
+              <span
+                className="absolute inset-0 flex flex-col justify-end p-1.5"
+                style={{ color: t.t > 0.75 ? "#10131a" : "var(--color-ink)" }}
+              >
+                <span className="truncate font-mono text-[9.5px] font-bold">
                   {t.tag}
                 </span>
-                <span className="font-mono text-[8.5px] text-ink/70 tabular-nums">
+                <span className="font-mono text-[8.5px] opacity-75 tabular-nums">
                   {t.count.toLocaleString()}
                 </span>
               </span>

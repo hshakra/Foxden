@@ -4,6 +4,7 @@ import { buildDailyChart, buildHourlyChart } from "../../utils/processor";
 import { shortLabel } from "../../lib/chartLabels";
 import { usePrefetchFamily } from "../../hooks/useFamily";
 import { useRange } from "../../lib/range";
+import { heatColor } from "../../lib/colors";
 
 // the families page hero, campaign timing at a glance
 // one row per family, one cell per day (or hour at 24h), darker means busier
@@ -95,28 +96,14 @@ function Row({ row, max, onHover }) {
       >
         {row.name}
       </Link>
-      {row.cells.map((cell) => {
-        // quiet days sink into the background, busy days glow
-        const t = Math.sqrt(cell.count / max);
-        const background =
-          cell.count === 0
-            ? "var(--color-surface-0)"
-            : t > 0.65
-              ? `color-mix(in oklab, #b9c6ff ${Math.round(
-                  (t - 0.65) * 200,
-                )}%, var(--color-accent))`
-              : `color-mix(in oklab, var(--color-accent) ${Math.round(
-                  10 + t * 130,
-                )}%, var(--color-surface-1))`;
-        return (
-          <span
-            key={cell.date}
-            title={`${row.name}, ${cell.date}: ${cell.count}`}
-            className="h-[18px] rounded-[3px]"
-            style={{ background }}
-          />
-        );
-      })}
+      {row.cells.map((cell) => (
+        <span
+          key={cell.date}
+          title={`${row.name}, ${cell.date}: ${cell.count}`}
+          className="h-[18px] rounded-[3px]"
+          style={{ background: heatColor(Math.sqrt(cell.count / max) * 0.85) }}
+        />
+      ))}
       <span className="text-right font-mono text-[10px] text-ink-2 tabular-nums">
         {row.total}
       </span>

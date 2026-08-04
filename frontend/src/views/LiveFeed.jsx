@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { ArrowRight, RefreshCw } from "lucide-react";
+import { Link } from "react-router-dom";
 import useRecentIOCs from "../hooks/useRecentIOCS.js";
 import useFrozenFeed from "../hooks/useFrozenFeed";
 import useLastVisit from "../hooks/useLastVisit";
 import { Watchlist } from "../components/Watchlist";
+import { TrendingStrip } from "../components/TrendingStrip";
 import { useRange } from "../lib/range";
 import { TopBar } from "../components/TopBar";
 import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
@@ -80,6 +82,7 @@ export default function LiveFeed() {
             )}
 
             <Watchlist iocs={iocs} />
+            <TrendingStrip iocs={iocs} previous={previous} />
             {sinceLastVisit > 0 && (
               <p className="-my-3 font-mono text-[10px] text-ink-3 tabular-nums">
                 {sinceLastVisit.toLocaleString()} new IOCs since your last
@@ -108,22 +111,34 @@ export default function LiveFeed() {
                 selected ? "lg:grid-cols-[minmax(0,1fr)_300px]" : ""
               }`}
             >
-              <FeedTable
-                iocs={iocs}
-                selectedId={selected?.id}
-                onSelect={handleSelect}
-                familyFilter={familyFilter}
-                onFamilyFilterChange={setFamilyFilter}
-                typeFilter={typeFilter}
-                onTypeFilterChange={setTypeFilter}
-                threatFilter={threatFilter}
-                onThreatFilterChange={setThreatFilter}
-              />
+              <div className="min-w-0">
+                <FeedTable
+                  iocs={iocs}
+                  selectedId={selected?.id}
+                  onSelect={handleSelect}
+                  familyFilter={familyFilter}
+                  onFamilyFilterChange={setFamilyFilter}
+                  typeFilter={typeFilter}
+                  onTypeFilterChange={setTypeFilter}
+                  threatFilter={threatFilter}
+                  onThreatFilterChange={setThreatFilter}
+                  title="Latest IOCs"
+                  preview={15}
+                />
+                <Link
+                  to="/iocs"
+                  className="mt-2 flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-line-2 py-2 font-mono text-[10.5px] text-ink-2 hover:border-accent/50 hover:text-ink"
+                >
+                  browse all {iocs.length.toLocaleString()} IOCs with facets
+                  <ArrowRight size={11} />
+                </Link>
+              </div>
               {selected && (
                 <IOCDrawer
                   ioc={selected}
                   onClose={() => handleSelect(null)}
                   onFilterFamily={(family) => setFamilyFilter(family)}
+                  pool={iocs}
                 />
               )}
             </div>

@@ -61,7 +61,11 @@ export function FamilyProfile() {
                 cluster={false}
               />
               {selected && (
-                <IOCDrawer ioc={selected} onClose={() => setSelected(null)} />
+                <IOCDrawer
+                  ioc={selected}
+                  onClose={() => setSelected(null)}
+                  pool={iocs}
+                />
               )}
             </div>
             <TopTags iocs={iocs} />

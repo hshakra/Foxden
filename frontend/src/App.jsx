@@ -5,6 +5,7 @@ import LiveFeed from "./views/LiveFeed";
 import TagExplorer from "./views/TagExplorer";
 import { FamilyProfile } from "./views/FamilyProfile";
 import FamiliesIndex from "./views/FamiliesIndex";
+import IOCBrowse from "./views/IOCBrowse";
 import TagsIndex from "./views/TagsIndex";
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Routes>
           <Route element={<AppShell />}>
             <Route path="/" element={<LiveFeed />} />
+            <Route path="/iocs" element={<IOCBrowse />} />
             <Route path="/families" element={<FamiliesIndex />} />
             <Route path="/tags" element={<TagsIndex />} />
             <Route path="/family/:name" element={<FamilyProfile />} />

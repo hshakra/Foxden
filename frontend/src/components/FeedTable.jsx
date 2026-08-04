@@ -8,6 +8,7 @@ import {
   Search,
 } from "lucide-react";
 import { sortRecentStream } from "../utils/processor";
+import { THREAT_LABELS } from "../lib/colors";
 import { IOCCard } from "../views/IOCCard";
 import { EmptyState } from "./states";
 
@@ -141,6 +142,8 @@ export function FeedTable({
   onFamilyFilterChange,
   typeFilter = [],
   onTypeFilterChange,
+  threatFilter = [],
+  onThreatFilterChange,
   title = "Live IOC feed",
   cluster = true,
 }) {
@@ -158,11 +161,13 @@ export function FeedTable({
         const t = ioc.ioc_type.endsWith("_hash") ? "hash" : ioc.ioc_type;
         if (!typeFilter.includes(t)) return false;
       }
+      if (threatFilter.length && !threatFilter.includes(ioc.threat_type))
+        return false;
       if ((Number(ioc.confidence_level) || 0) < minConf) return false;
       if (familyFilter && ioc.malware_printable !== familyFilter) return false;
       return true;
     });
-  }, [stream, typeFilter, minConf, familyFilter]);
+  }, [stream, typeFilter, threatFilter, minConf, familyFilter]);
 
   // families present in the current data, for the family picker
   const familyOptions = useMemo(() => {
@@ -175,10 +180,17 @@ export function FeedTable({
       .map(([name]) => name);
   }, [stream]);
 
+  // threat types actually present in the data, for the threat picker
+  const threatOptions = useMemo(() => {
+    const seen = new Set();
+    for (const ioc of stream) seen.add(ioc.threat_type);
+    return [...seen].sort();
+  }, [stream]);
+
   // reset paging whenever the result set changes shape
   useEffect(() => {
     setLimit(PAGE);
-  }, [typeFilter, minConf, familyFilter, iocs]);
+  }, [typeFilter, threatFilter, minConf, familyFilter, iocs]);
 
   const visible = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
   const items = useMemo(
@@ -306,6 +318,41 @@ export function FeedTable({
           </FilterMenu>
         )}
 
+        {onThreatFilterChange && (
+          <FilterMenu
+            label={
+              threatFilter.length
+                ? `threat: ${threatFilter
+                    .map((t) => THREAT_LABELS[t] ?? t)
+                    .join(", ")}`
+                : "threat: all"
+            }
+            active={threatFilter.length > 0}
+          >
+            {threatOptions.map((t) => (
+              <MenuItem
+                key={t}
+                checked={threatFilter.includes(t)}
+                onClick={() =>
+                  onThreatFilterChange(
+                    threatFilter.includes(t)
+                      ? threatFilter.filter((x) => x !== t)
+                      : [...threatFilter, t],
+                  )
+                }
+              >
+                {THREAT_LABELS[t] ?? t}
+              </MenuItem>
+            ))}
+            <MenuItem
+              checked={threatFilter.length === 0}
+              onClick={() => onThreatFilterChange([])}
+            >
+              all threats
+            </MenuItem>
+          </FilterMenu>
+        )}
+
         <FilterMenu label={`confidence: ${confLabel}`} active={minConf > 0}>
           {CONF_PRESETS.map((p) => (
             <MenuItem
@@ -360,7 +407,7 @@ export function FeedTable({
           <div
             role="table"
             aria-label={title}
-            className="grid grid-cols-[70px_minmax(0,1fr)_130px_120px_42px_44px] gap-2.5 border-b border-line-2 px-2 pb-1.5 font-mono text-[9px] uppercase tracking-widest text-ink-3"
+            className="grid grid-cols-[70px_minmax(0,1fr)_130px_120px_42px_20px] gap-2.5 border-b border-line-2 px-2 pb-1.5 font-mono text-[9px] uppercase tracking-widest text-ink-3"
           >
             <span>Type</span>
             <span>Indicator</span>
@@ -378,6 +425,7 @@ export function FeedTable({
                 actionLabel="Clear filters"
                 onAction={() => {
                   onTypeFilterChange?.([]);
+                  onThreatFilterChange?.([]);
                   setMinConf(0);
                   onFamilyFilterChange?.(null);
                 }}

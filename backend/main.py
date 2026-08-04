@@ -1,3 +1,4 @@
+import asyncio
 import ipaddress
 import os
 import time
@@ -63,16 +64,25 @@ async def threatfox(payload: dict, cache_key: str) -> dict:
     if hit and hit[0] > time.time():
         return hit[1]
 
+    # one retry, threatfox hiccups now and then
+    response = None
     async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-        try:
-            response = await client.post(
-                THREATFOX_URL,
-                headers={"Auth-Key": threatfox_api_key},
-                json=payload,
-            )
-        except httpx.HTTPError:
-            raise HTTPException(status_code=502, detail="ThreatFox is unreachable")
+        for attempt in range(2):
+            try:
+                response = await client.post(
+                    THREATFOX_URL,
+                    headers={"Auth-Key": threatfox_api_key},
+                    json=payload,
+                )
+                if response.status_code == 200:
+                    break
+            except httpx.HTTPError:
+                response = None
+            if attempt == 0:
+                await asyncio.sleep(0.5)
 
+    if response is None:
+        raise HTTPException(status_code=502, detail="ThreatFox is unreachable")
     if response.status_code != 200:
         raise HTTPException(status_code=502, detail="ThreatFox returned an error")
 
@@ -189,45 +199,54 @@ class GeoRequest(BaseModel):
     ips: list[str] = Field(max_length=500)
 
 
+async def _lookup_batch(client: httpx.AsyncClient, batch: list[str]) -> None:
+    # plain http, free tier only. these IPs are already public
+    # threat feed data so nothing sensitive crosses this wire
+    try:
+        response = await client.post(
+            "http://ip-api.com/batch",
+            json=[
+                {
+                    "query": ip,
+                    "fields": "status,countryCode,country,lat,lon,query",
+                }
+                for ip in batch
+            ],
+        )
+    except httpx.HTTPError:
+        return
+    if response.status_code != 200:
+        return
+    for row in response.json():
+        if row.get("status") == "success":
+            _geo_cache[row["query"]] = {
+                "ip": row["query"],
+                "countryCode": row["countryCode"],
+                "country": row["country"],
+                "lat": row["lat"],
+                "lon": row["lon"],
+            }
+
+
 @app.post("/api/geo")
 async def get_geo(geo: GeoRequest):
     # dedupe and reject anything that isn't a public IP
     ips = [ip for ip in dict.fromkeys(geo.ips) if is_public_ip(ip)]
     missing = [ip for ip in ips if ip not in _geo_cache]
 
-    async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-        for start in range(0, len(missing), 100):
-            # serve whatever is cached once the upstream budget runs out
-            if not geo_budget_left():
-                break
-            _geo_batches.append(time.time())
-            batch = missing[start : start + 100]
-            try:
-                # plain http, free tier only. these IPs are already public
-                # threat feed data so nothing sensitive crosses this wire
-                response = await client.post(
-                    "http://ip-api.com/batch",
-                    json=[
-                        {
-                            "query": ip,
-                            "fields": "status,countryCode,country,lat,lon,query",
-                        }
-                        for ip in batch
-                    ],
-                )
-            except httpx.HTTPError:
-                break
-            if response.status_code != 200:
-                break
-            for row in response.json():
-                if row.get("status") == "success":
-                    _geo_cache[row["query"]] = {
-                        "ip": row["query"],
-                        "countryCode": row["countryCode"],
-                        "country": row["country"],
-                        "lat": row["lat"],
-                        "lon": row["lon"],
-                    }
+    # collect what the upstream budget allows, then look up in parallel
+    batches = []
+    for start in range(0, len(missing), 100):
+        if not geo_budget_left():
+            break
+        _geo_batches.append(time.time())
+        batches.append(missing[start : start + 100])
+
+    if batches:
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+            await asyncio.gather(
+                *[_lookup_batch(client, batch) for batch in batches]
+            )
 
     # keep the cache from growing forever
     if len(_geo_cache) > GEO_CACHE_MAX:

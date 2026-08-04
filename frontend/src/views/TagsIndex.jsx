@@ -4,6 +4,8 @@ import { Search, ArrowUpDown } from "lucide-react";
 import useRecentIOCs from "../hooks/useRecentIOCS.js";
 import { TopBar } from "../components/TopBar";
 import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
+import { StatTile } from "../components/StatTile";
+import { TagTreemap } from "../components/charts/TagTreemap";
 
 // tags as a sortable table with the long tail collapsed
 // each row shows how wide the tag spreads across families
@@ -60,6 +62,22 @@ export default function TagsIndex() {
 
   const visible = shown.slice(0, limit);
 
+  // band stats: tag noise and spread at a glance
+  const band = useMemo(() => {
+    const singles = rows.filter((r) => r.count === 1).length;
+    const sorted = [...rows].sort((a, b) => b.count - a.count);
+    const total = (iocs ?? []).length;
+    let tagged = 0;
+    for (const ioc of iocs ?? []) {
+      if (ioc.tags?.length) tagged += 1;
+    }
+    return {
+      singles,
+      topTag: sorted[0]?.tag ?? "n/a",
+      taggedPct: total ? Math.round((tagged / total) * 100) : 0,
+    };
+  }, [rows, iocs]);
+
   function toggleSort(key) {
     setSort((prev) =>
       prev.key === key ? { key, dir: -prev.dir } : { key, dir: -1 },
@@ -80,6 +98,20 @@ export default function TagsIndex() {
             hint="Try widening the time range."
           />
         ) : (
+          <>
+          <div className="mb-4 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+            <StatTile label="Tags" value={rows.length} />
+            <StatTile label="Top tag" value={band.topTag} />
+            <StatTile label="Used once" value={band.singles}>
+              <p className="mt-0.5 font-mono text-[9.5px] text-ink-3">
+                one off or noise
+              </p>
+            </StatTile>
+            <StatTile label="IOCs tagged" value={`${band.taggedPct}%`} />
+          </div>
+          <div className="mb-4">
+            <TagTreemap rows={rows} />
+          </div>
           <div className="rounded-xl border border-line bg-surface-1 p-4">
             <div className="mb-3 flex flex-wrap items-center gap-3">
               <h4 className="text-[13px] font-semibold">Campaign tags</h4>
@@ -158,6 +190,7 @@ export default function TagsIndex() {
               </div>
             </div>
           </div>
+          </>
         )}
       </div>
     </>

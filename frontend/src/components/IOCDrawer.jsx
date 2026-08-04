@@ -20,7 +20,7 @@ function Row({ k, children }) {
   );
 }
 
-export function IOCDrawer({ ioc, onClose, onFilterFamily }) {
+export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate }) {
   const [copied, setCopied] = useState(false);
   if (!ioc) return null;
 
@@ -32,10 +32,12 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily }) {
 
   const vtUrl = `https://www.virustotal.com/gui/search/${encodeURIComponent(ioc.ioc)}`;
   const tfUrl = `https://threatfox.abuse.ch/ioc/${ioc.id}/`;
-  const malpediaUrl =
-    ioc.malware && !ioc.malware.startsWith("unknown")
-      ? `https://malpedia.caad.fkie.fraunhofer.de/details/${encodeURIComponent(ioc.malware)}`
-      : null;
+  // malwarebazaar only holds samples, so hashes only
+  const bazaarUrl = ioc.ioc_type?.endsWith("_hash")
+    ? `https://bazaar.abuse.ch/browse.php?search=${encodeURIComponent(
+        `${ioc.ioc_type.replace("_hash", "")}:${ioc.ioc}`,
+      )}`
+    : null;
 
   return (
     <aside
@@ -74,6 +76,7 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily }) {
       <Row k="Family">
         <Link
           to={`/family/${encodeURIComponent(ioc.malware_printable)}`}
+          onClick={onNavigate}
           className="text-accent-soft hover:underline"
         >
           {ioc.malware_printable}
@@ -97,6 +100,7 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily }) {
               <Link
                 key={t}
                 to={`/tag/${encodeURIComponent(t)}`}
+                onClick={onNavigate}
                 className="rounded-full border border-t-domain/25 bg-t-domain/10 px-2 py-0.5 font-mono text-[9px] text-t-domain hover:border-accent/60"
               >
                 {t}
@@ -122,14 +126,14 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily }) {
         >
           <ExternalLink size={11} /> VirusTotal
         </a>
-        {malpediaUrl && (
+        {bazaarUrl && (
           <a
-            href={malpediaUrl}
+            href={bazaarUrl}
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-1 rounded-lg border border-line-2 bg-surface-2 px-2.5 py-1.5 text-[11px] font-semibold hover:border-accent hover:text-accent-soft"
           >
-            <ExternalLink size={11} /> Malpedia
+            <ExternalLink size={11} /> MalwareBazaar
           </a>
         )}
         <a

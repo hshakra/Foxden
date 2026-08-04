@@ -7,8 +7,10 @@ import { NUM_TO_A2 } from "../lib/isoCodes";
 import {
   extractIPs,
   ipConfidenceMap,
-  buildDailyChart,
+  buildActivitySeries,
 } from "../utils/processor";
+import { CONF_COLORS } from "../lib/colors";
+import { Sparkline } from "./charts/Sparkline";
 import { useRange } from "../lib/range";
 import { Skeleton } from "./states";
 
@@ -32,10 +34,11 @@ const COUNTRY_PATHS = countries.map((c) => ({
 
 const MODES = ["Volume", "Confidence"];
 
+// high confidence stays quiet, the map should flag the doubtful regions
 function confidenceColor(avg) {
-  if (avg >= 75) return "var(--color-good)";
-  if (avg >= 50) return "var(--color-warn)";
-  return "var(--color-bad)";
+  if (avg >= 75) return CONF_COLORS.quiet;
+  if (avg >= 50) return CONF_COLORS.warn;
+  return CONF_COLORS.bad;
 }
 
 export function OriginMap({ iocs }) {
@@ -48,18 +51,8 @@ export function OriginMap({ iocs }) {
   // a disabled query never resolves, so track the no-ips case ourselves
   const loading = ips.length > 0 && geo.isPending;
 
-  // activity sparkline for the side panel
-  const spark = useMemo(
-    () => buildDailyChart(iocs, Math.max(days, 7)),
-    [iocs, days],
-  );
-  const sparkMax = Math.max(...spark.map((d) => d.count), 1);
-  const sparkPoints = spark
-    .map(
-      (d, i) =>
-        `${(i / (spark.length - 1)) * 200},${44 - (d.count / sparkMax) * 38}`,
-    )
-    .join(" ");
+  // activity sparkline for the side panel, hourly at 24h
+  const spark = useMemo(() => buildActivitySeries(iocs, days), [iocs, days]);
 
   // group by country with count and average confidence
   const byCountry = useMemo(() => {
@@ -95,7 +88,7 @@ export function OriginMap({ iocs }) {
       const t = Math.sqrt(entry.count / maxCount);
       return { fill: "var(--color-accent)", opacity: 0.25 + t * 0.7 };
     }
-    return { fill: confidenceColor(entry.avgConf), opacity: 0.55 };
+    return { fill: confidenceColor(entry.avgConf), opacity: 0.6 };
   }
 
   const hoveredEntry = hovered ? byCountry[hovered.a2] : null;
@@ -221,21 +214,9 @@ export function OriginMap({ iocs }) {
           )}
 
           <p className="mb-1 mt-4 font-mono text-[9.5px] uppercase tracking-widest text-ink-3">
-            {Math.max(days, 7)}-day activity
+            {days === 1 ? "24-hour" : `${days}-day`} activity
           </p>
-          <svg viewBox="0 0 200 44" className="h-11 w-full" aria-hidden="true">
-            <polyline
-              fill="rgba(113,128,185,.14)"
-              stroke="none"
-              points={`0,44 ${sparkPoints} 200,44`}
-            />
-            <polyline
-              fill="none"
-              stroke="var(--color-accent)"
-              strokeWidth="1.5"
-              points={sparkPoints}
-            />
-          </svg>
+          <Sparkline points={spark} showLabels />
         </div>
       </div>
     </div>

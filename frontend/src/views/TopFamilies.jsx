@@ -3,30 +3,14 @@ import { Link } from "react-router-dom";
 import { buildDailyChart } from "../utils/processor";
 import { typeColor } from "../lib/colors";
 import { useRange } from "../lib/range";
+import { usePrefetchFamily } from "../hooks/useFamily";
+import { Sparkline } from "../components/charts/Sparkline";
+import { sparkRange } from "../lib/chartLabels";
+import { TypeLegend } from "../components/charts/TypeLegend";
 
 // family leaderboard for the overview
 // each row carries its own trend line and type mix so a spike or an
 // infrastructure shift is visible without leaving the page
-
-function Spark({ points }) {
-  const max = Math.max(...points.map((p) => p.count), 1);
-  const line = points
-    .map(
-      (p, i) =>
-        `${(i / (points.length - 1)) * 72},${20 - (p.count / max) * 16}`,
-    )
-    .join(" ");
-  return (
-    <svg viewBox="0 0 72 22" className="h-[22px] w-[72px]" aria-hidden="true">
-      <polyline
-        fill="none"
-        stroke="var(--color-accent)"
-        strokeWidth="1.4"
-        points={line}
-      />
-    </svg>
-  );
-}
 
 function MixBar({ mix }) {
   return (
@@ -44,6 +28,7 @@ function MixBar({ mix }) {
 
 export function TopFamilies({ iocs }) {
   const { days } = useRange();
+  const prefetchFamily = usePrefetchFamily();
 
   const rows = useMemo(() => {
     // bucket every ioc by family first
@@ -78,11 +63,9 @@ export function TopFamilies({ iocs }) {
 
   return (
     <div className="rounded-xl border border-line bg-surface-1 p-4">
-      <div className="mb-2 flex items-baseline gap-2.5">
+      <div className="mb-2 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
         <h4 className="text-[13px] font-semibold">Top families</h4>
-        <span className="font-mono text-[10px] text-ink-3">
-          trend and type mix per family
-        </span>
+        <TypeLegend />
         <Link
           to="/families"
           className="ml-auto font-mono text-[10px] text-accent-soft hover:underline"
@@ -97,7 +80,7 @@ export function TopFamilies({ iocs }) {
         <span />
         <span />
         <span className="pb-1 font-mono text-[8.5px] uppercase tracking-widest text-ink-3">
-          trend
+          {rows[0] ? sparkRange(rows[0].spark) : "trend"}
         </span>
         <span className="pb-1 font-mono text-[8.5px] uppercase tracking-widest text-ink-3">
           mix
@@ -109,6 +92,7 @@ export function TopFamilies({ iocs }) {
           <Link
             key={f.name}
             to={`/family/${encodeURIComponent(f.name)}`}
+            onMouseEnter={() => prefetchFamily(f.name)}
             className="col-span-5 grid grid-cols-subgrid items-center border-t border-line py-1.5 hover:bg-surface-2/50"
           >
             <span className="font-mono text-[10px] text-ink-3 tabular-nums">
@@ -120,7 +104,9 @@ export function TopFamilies({ iocs }) {
             >
               {f.name}
             </span>
-            <Spark points={f.spark} />
+            <span className="w-[72px]">
+              <Sparkline points={f.spark} width={72} height={22} />
+            </span>
             <MixBar mix={f.mix} />
             <span className="text-right font-mono text-[10px] text-ink-2 tabular-nums">
               {f.count}

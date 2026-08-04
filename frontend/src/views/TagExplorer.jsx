@@ -46,6 +46,7 @@ export default function TagExplorer() {
               title={`#${name}`}
               kind="campaign tag"
               iocs={iocs}
+              watch={{ kind: "tag", name }}
             />
             <div
               className={`grid items-start gap-4 ${

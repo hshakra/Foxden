@@ -33,7 +33,9 @@
   --color-t-hash: #56a8a0;
 
   /* status colors, used only for status and always with a text label */
+  /* good-dim marks the high confidence norm, bright colors mark exceptions */
   --color-good: #3ddc84;
+  --color-good-dim: #5c9c7f;
   --color-warn: #ffb020;
   --color-bad: #ff5470;
 

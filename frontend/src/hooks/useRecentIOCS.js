@@ -12,6 +12,7 @@ export default function useRecentIOCs() {
   return useQuery({
     queryKey: ["recentIOCs", fetchDays, days],
     queryFn: () => api.recent(fetchDays),
+    placeholderData: (prev) => prev,
     select: (data) => {
       const all = data.data ?? [];
       if (fetchDays === days) return { current: all, previous: [] };

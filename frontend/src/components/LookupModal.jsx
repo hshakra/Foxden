@@ -3,13 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
 import { api } from "../lib/api";
 import { IOCCard } from "../views/IOCCard";
+import { IOCDrawer } from "./IOCDrawer";
 import { SkeletonRows, EmptyState, ErrorState } from "./states";
 
 // global ioc lookup in a small modal
 // paste any ip, domain, url, or hash and get the threatfox record
+// clicking a result opens the same detail drawer used everywhere else
 export function LookupModal({ open, onClose }) {
   const [term, setTerm] = useState("");
   const [submitted, setSubmitted] = useState("");
+  const [selected, setSelected] = useState(null);
 
   const result = useQuery({
     queryKey: ["lookup", submitted],
@@ -24,6 +27,7 @@ export function LookupModal({ open, onClose }) {
   const close = useCallback(() => {
     setTerm("");
     setSubmitted("");
+    setSelected(null);
     onClose();
   }, [onClose]);
 
@@ -41,7 +45,7 @@ export function LookupModal({ open, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-surface-0/70 p-4 pt-[12vh] backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-surface-0/70 p-4 pt-[10vh] backdrop-blur-sm"
       onClick={close}
     >
       <div
@@ -49,12 +53,13 @@ export function LookupModal({ open, onClose }) {
         aria-modal="true"
         aria-label="IOC lookup"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl rounded-xl border border-line-2 bg-surface-3 p-4 shadow-2xl"
+        className="w-full max-w-3xl rounded-xl border border-line-2 bg-surface-3 p-4 shadow-2xl"
       >
         <form
           className="flex items-center gap-2.5"
           onSubmit={(e) => {
             e.preventDefault();
+            setSelected(null);
             setSubmitted(term.trim());
           }}
         >
@@ -106,10 +111,28 @@ export function LookupModal({ open, onClose }) {
                 hint="That can be good news, it is not in the abuse.ch database."
               />
             ) : (
-              <div>
-                {result.data.map((ioc) => (
-                  <IOCCard key={ioc.id} ioc={ioc} />
-                ))}
+              <div
+                className={`grid items-start gap-3 ${
+                  selected ? "md:grid-cols-[minmax(0,1fr)_280px]" : ""
+                }`}
+              >
+                <div>
+                  {result.data.map((ioc) => (
+                    <IOCCard
+                      key={ioc.id}
+                      ioc={ioc}
+                      selected={selected?.id === ioc.id}
+                      onSelect={() => setSelected(ioc)}
+                    />
+                  ))}
+                </div>
+                {selected && (
+                  <IOCDrawer
+                    ioc={selected}
+                    onClose={() => setSelected(null)}
+                    onNavigate={close}
+                  />
+                )}
               </div>
             )}
           </div>

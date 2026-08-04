@@ -1,10 +1,12 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { rankTags } from "../utils/processor";
+import { usePrefetchTag } from "../hooks/useTag";
 
 // ranked tag list for the overview, bars instead of a chip pile
 export function TopTags({ iocs }) {
   const data = useMemo(() => rankTags(iocs), [iocs]);
+  const prefetchTag = usePrefetchTag();
   const max = data[0]?.count ?? 1;
 
   return (
@@ -26,6 +28,7 @@ export function TopTags({ iocs }) {
           <Link
             key={t.tag}
             to={`/tag/${encodeURIComponent(t.tag)}`}
+            onMouseEnter={() => prefetchTag(t.tag)}
             className="flex items-center gap-2.5 border-t border-line py-1.5 text-xs hover:bg-surface-2/50"
           >
             <span className="w-4 font-mono text-[10px] text-ink-3 tabular-nums">

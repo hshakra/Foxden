@@ -1,13 +1,6 @@
-import { Link, useNavigate } from "react-router-dom";
-import {
-  Copy,
-  Check,
-  MoreVertical,
-  ExternalLink,
-  Shield,
-  ChevronRight,
-} from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { Copy, Check, ChevronRight } from "lucide-react";
+import { useState } from "react";
 import { timeAgo } from "../lib/time";
 import { confidenceInfo } from "../lib/confidence";
 import { CONF_COLORS } from "../lib/colors";
@@ -27,7 +20,6 @@ const TYPE_LABELS = {
   sha1_hash: "sha1",
 };
 
-
 export function TypeBadge({ type }) {
   return (
     <span
@@ -40,27 +32,42 @@ export function TypeBadge({ type }) {
   );
 }
 
+// high confidence is the norm here so it stays quiet
+// only medium and low get alert colors
 export function ConfidenceCell({ level }) {
   const conf = confidenceInfo(level);
-  const color = CONF_COLORS[conf.color];
+  const color = CONF_COLORS[conf.tone];
+  const quiet = conf.tone === "quiet";
   return (
     <span className="flex items-center gap-1.5">
       <span className="h-[5px] w-6 shrink-0 overflow-hidden rounded-sm bg-surface-0">
         <span
           className="block h-full"
-          style={{ width: `${conf.value}%`, background: color }}
+          style={{
+            width: `${conf.value}%`,
+            background: color,
+            opacity: quiet ? 0.7 : 1,
+          }}
         />
       </span>
-      <b className="font-mono text-[9.5px] tabular-nums" style={{ color }}>
+      <b
+        className="font-mono text-[9.5px] font-semibold tabular-nums"
+        style={{ color }}
+      >
         {conf.value}
       </b>
-      <small className="font-mono text-[8.5px] text-ink-3">{conf.label}</small>
+      <small
+        className="font-mono text-[8.5px]"
+        style={{ color: quiet ? "var(--color-ink-3)" : color }}
+      >
+        {conf.label}
+      </small>
     </span>
   );
 }
 
 // one ioc as a feed row
-// type badge, mono value with copy, family, confidence, time ago, row menu
+// type badge, mono value with copy, family, confidence, time ago, chevron
 export function IOCCard({ ioc, selected, onSelect, onFamilyClick }) {
   const [copied, setCopied] = useState(false);
 
@@ -77,7 +84,7 @@ export function IOCCard({ ioc, selected, onSelect, onFamilyClick }) {
       tabIndex={0}
       onClick={onSelect}
       onKeyDown={(e) => e.key === "Enter" && onSelect?.()}
-      className={`group grid cursor-pointer grid-cols-[70px_minmax(0,1fr)_130px_120px_42px_44px] items-center gap-2.5 rounded-md border-b border-line px-2 py-2 text-xs transition-colors ${
+      className={`group grid cursor-pointer grid-cols-[70px_minmax(0,1fr)_130px_120px_42px_20px] items-center gap-2.5 rounded-md border-b border-line px-2 py-2 text-xs transition-colors ${
         selected
           ? "border-transparent bg-surface-2 shadow-[inset_2px_0_0_var(--color-accent)]"
           : "hover:bg-surface-2/50"
@@ -135,87 +142,12 @@ export function IOCCard({ ioc, selected, onSelect, onFamilyClick }) {
         {timeAgo(ioc.first_seen)}
       </span>
 
-      <span className="flex items-center justify-end gap-1">
-        <RowMenu ioc={ioc} onCopy={copyValue} />
-        <ChevronRight
-          size={13}
-          className={`shrink-0 transition-colors ${
-            selected ? "text-accent-soft" : "text-ink-3 group-hover:text-ink-2"
-          }`}
-        />
-      </span>
-    </div>
-  );
-}
-
-// per row actions behind the triple dot menu
-function RowMenu({ ioc, onCopy }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!open) return;
-    function onClickAway(e) {
-      if (!ref.current?.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onClickAway);
-    return () => document.removeEventListener("mousedown", onClickAway);
-  }, [open]);
-
-  const itemClass =
-    "flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-[11px] text-ink-2 hover:bg-surface-2 hover:text-ink";
-
-  return (
-    <span ref={ref} className="relative">
-      <button
-        type="button"
-        aria-label="Row actions"
-        aria-expanded={open}
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((v) => !v);
-        }}
-        className={`text-ink-3 transition-opacity hover:text-ink focus-visible:opacity-100 group-hover:opacity-100 ${
-          open ? "" : "opacity-40"
+      <ChevronRight
+        size={13}
+        className={`shrink-0 justify-self-end transition-colors ${
+          selected ? "text-accent-soft" : "text-ink-3 group-hover:text-ink-2"
         }`}
-      >
-        <MoreVertical size={13} />
-      </button>
-      {open && (
-        <span
-          className="absolute right-0 top-6 z-20 w-44 overflow-hidden rounded-lg border border-line-2 bg-surface-3 py-1 shadow-xl"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            type="button"
-            className={itemClass}
-            onClick={(e) => {
-              onCopy(e);
-              setOpen(false);
-            }}
-          >
-            <Copy size={12} /> Copy value
-          </button>
-          <a
-            href={`https://www.virustotal.com/gui/search/${encodeURIComponent(ioc.ioc)}`}
-            target="_blank"
-            rel="noreferrer"
-            className={itemClass}
-          >
-            <ExternalLink size={12} /> VirusTotal
-          </a>
-          <button
-            type="button"
-            className={itemClass}
-            onClick={() =>
-              navigate(`/family/${encodeURIComponent(ioc.malware_printable)}`)
-            }
-          >
-            <Shield size={12} /> Family profile
-          </button>
-        </span>
-      )}
-    </span>
+      />
+    </div>
   );
 }

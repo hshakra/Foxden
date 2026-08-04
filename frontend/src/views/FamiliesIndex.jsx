@@ -9,6 +9,13 @@ import { confidenceInfo } from "../lib/confidence";
 import { CONF_COLORS, typeColor } from "../lib/colors";
 import { parseThreatFoxDate, timeAgo } from "../lib/time";
 import { useRange } from "../lib/range";
+import { usePrefetchFamily } from "../hooks/useFamily";
+import { Sparkline } from "../components/charts/Sparkline";
+import { sparkRange } from "../lib/chartLabels";
+import { TypeLegend } from "../components/charts/TypeLegend";
+import { FamilyHeatmap } from "../components/charts/FamilyHeatmap";
+import { StatTile } from "../components/StatTile";
+import { newFamilies } from "../utils/processor";
 
 // families as a sortable table
 // count, confidence, trend, and type mix per family so the page answers
@@ -18,38 +25,20 @@ const COLUMNS = [
   { key: "name", label: "Family", sortable: true },
   { key: "count", label: "IOCs", sortable: true, right: true },
   { key: "conf", label: "Avg conf", sortable: true },
-  { key: "trend", label: "Trend" },
+  { key: "trend", label: "Trend" }, // label swaps to the date window below
   { key: "mix", label: "Type mix" },
   { key: "lastSeen", label: "Last seen", sortable: true, right: true },
 ];
 
-function Spark({ points }) {
-  const max = Math.max(...points.map((p) => p.count), 1);
-  const line = points
-    .map(
-      (p, i) =>
-        `${(i / (points.length - 1)) * 72},${20 - (p.count / max) * 16}`,
-    )
-    .join(" ");
-  return (
-    <svg viewBox="0 0 72 22" className="h-[22px] w-[72px]" aria-hidden="true">
-      <polyline
-        fill="none"
-        stroke="var(--color-accent)"
-        strokeWidth="1.4"
-        points={line}
-      />
-    </svg>
-  );
-}
-
 export default function FamiliesIndex() {
   const recent = useRecentIOCs();
   const { days } = useRange();
+  const prefetchFamily = usePrefetchFamily();
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "count", dir: -1 });
 
   const iocs = recent.data?.current;
+  const previous = recent.data?.previous;
 
   const rows = useMemo(() => {
     const byFamily = {};
@@ -78,6 +67,18 @@ export default function FamiliesIndex() {
       };
     });
   }, [iocs, days]);
+
+  // band stats: how concentrated the activity is and what just appeared
+  const band = useMemo(() => {
+    const total = (iocs ?? []).length;
+    const sorted = [...rows].sort((a, b) => b.count - a.count);
+    const top5 = sorted.slice(0, 5).reduce((sum, r) => sum + r.count, 0);
+    return {
+      fresh: previous?.length ? newFamilies(iocs ?? [], previous) : null,
+      topName: sorted[0]?.name ?? "n/a",
+      concentration: total ? Math.round((top5 / total) * 100) : 0,
+    };
+  }, [rows, iocs, previous]);
 
   const shown = useMemo(() => {
     const filtered = search
@@ -110,6 +111,29 @@ export default function FamiliesIndex() {
             hint="Try widening the time range."
           />
         ) : (
+          <>
+          <div className="mb-4 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+            <StatTile label="Families" value={rows.length} />
+            <StatTile
+              label="New in range"
+              value={band.fresh === null ? "n/a" : band.fresh}
+            >
+              {band.fresh === null && (
+                <p className="mt-0.5 font-mono text-[9.5px] text-ink-3">
+                  needs a comparison window, try 24h or 3d
+                </p>
+              )}
+            </StatTile>
+            <StatTile label="Top 5 share" value={`${band.concentration}%`}>
+              <p className="mt-0.5 font-mono text-[9.5px] text-ink-3">
+                of all IOCs in range
+              </p>
+            </StatTile>
+            <StatTile label="Busiest" value={band.topName} />
+          </div>
+          <div className="mb-4">
+            <FamilyHeatmap iocs={iocs ?? []} />
+          </div>
           <div className="rounded-xl border border-line bg-surface-1 p-4">
             <div className="mb-3 flex flex-wrap items-center gap-3">
               <h4 className="text-[13px] font-semibold">
@@ -118,6 +142,7 @@ export default function FamiliesIndex() {
               <span className="font-mono text-[10px] text-ink-3 tabular-nums">
                 {shown.length} of {rows.length}
               </span>
+              <TypeLegend />
               <span className="ml-auto flex min-w-[200px] items-center gap-2 rounded-lg border border-line bg-surface-0 px-2.5 py-1.5">
                 <Search size={12} className="text-ink-3" />
                 <input
@@ -144,7 +169,9 @@ export default function FamiliesIndex() {
                         sort.key === c.key ? "text-accent-soft" : ""
                       }`}
                     >
-                      {c.label}
+                      {c.key === "trend" && shown[0]
+                        ? sparkRange(shown[0].spark)
+                        : c.label}
                       {c.sortable && <ArrowUpDown size={9} />}
                     </button>
                   ))}
@@ -156,6 +183,7 @@ export default function FamiliesIndex() {
                     <Link
                       key={r.name}
                       to={`/family/${encodeURIComponent(r.name)}`}
+                      onMouseEnter={() => prefetchFamily(r.name)}
                       className="grid grid-cols-[minmax(0,1fr)_64px_90px_88px_90px_80px] items-center gap-x-3 border-b border-line px-2 py-1.5 text-xs last:border-0 hover:bg-surface-2/50"
                     >
                       <span
@@ -169,11 +197,18 @@ export default function FamiliesIndex() {
                       </span>
                       <span
                         className="font-mono text-[10px] tabular-nums"
-                        style={{ color: CONF_COLORS[conf.color] }}
+                        style={{
+                          color:
+                            conf.tone === "quiet"
+                              ? "var(--color-ink-2)"
+                              : CONF_COLORS[conf.tone],
+                        }}
                       >
                         {r.conf} {conf.label}
                       </span>
-                      <Spark points={r.spark} />
+                      <span className="w-[72px]">
+                        <Sparkline points={r.spark} width={72} height={22} />
+                      </span>
                       <span className="flex h-[5px] w-[76px] gap-[2px]">
                         {r.mix.map((p) => (
                           <span
@@ -196,6 +231,7 @@ export default function FamiliesIndex() {
               </div>
             </div>
           </div>
+          </>
         )}
       </div>
     </>

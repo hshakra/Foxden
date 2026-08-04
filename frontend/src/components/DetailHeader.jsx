@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 import { computeKpis, buildDailyChart } from "../utils/processor";
+import { Sparkline } from "./charts/Sparkline";
 import { confidenceInfo } from "../lib/confidence";
 import { parseThreatFoxDate } from "../lib/time";
 import { CONF_COLORS } from "../lib/colors";
-
+import { WatchButton } from "./WatchButton";
 
 function Stat({ label, value, valueColor }) {
   return (
@@ -22,7 +23,7 @@ function Stat({ label, value, valueColor }) {
 }
 
 // header for the family and tag pages, identity plus stats plus a sparkline
-export function DetailHeader({ icon: Icon, title, kind, iocs }) {
+export function DetailHeader({ icon: Icon, title, kind, iocs, watch }) {
   const kpis = useMemo(() => computeKpis(iocs), [iocs]);
   const spark = useMemo(() => buildDailyChart(iocs, 14), [iocs]);
   const conf = confidenceInfo(kpis.avgConfidence);
@@ -32,14 +33,6 @@ export function DetailHeader({ icon: Icon, title, kind, iocs }) {
     .filter(Boolean)
     .sort((a, b) => a - b);
   const firstSeen = seen[0];
-
-  const max = Math.max(...spark.map((d) => d.count), 1);
-  const points = spark
-    .map(
-      (d, i) =>
-        `${(i / (spark.length - 1)) * 200},${44 - (d.count / max) * 40}`,
-    )
-    .join(" ");
 
   return (
     <div className="rounded-xl border border-line bg-surface-1 p-4">
@@ -58,7 +51,9 @@ export function DetailHeader({ icon: Icon, title, kind, iocs }) {
         <Stat
           label="Avg confidence"
           value={`${kpis.avgConfidence} ${conf.label}`}
-          valueColor={CONF_COLORS[conf.color]}
+          valueColor={
+            conf.tone === "quiet" ? undefined : CONF_COLORS[conf.tone]
+          }
         />
         <Stat
           label="First seen"
@@ -68,27 +63,18 @@ export function DetailHeader({ icon: Icon, title, kind, iocs }) {
                   month: "short",
                   year: "numeric",
                 })
-              : "—"
+              : "n/a"
           }
         />
 
-        <div className="ml-auto min-w-[200px]">
-          <p className="mb-1 font-mono text-[9.5px] uppercase tracking-widest text-ink-3">
-            14-day activity
-          </p>
-          <svg viewBox="0 0 200 44" className="h-11 w-full" aria-hidden="true">
-            <polyline
-              fill="rgba(113,128,185,.14)"
-              stroke="none"
-              points={`0,44 ${points} 200,44`}
-            />
-            <polyline
-              fill="none"
-              stroke="var(--color-accent)"
-              strokeWidth="1.5"
-              points={points}
-            />
-          </svg>
+        <div className="ml-auto flex items-center gap-5">
+          {watch && <WatchButton kind={watch.kind} name={watch.name} />}
+          <div className="min-w-[200px]">
+            <p className="mb-1 font-mono text-[9.5px] uppercase tracking-widest text-ink-3">
+              14-day activity
+            </p>
+            <Sparkline points={spark} showLabels />
+          </div>
         </div>
       </div>
     </div>

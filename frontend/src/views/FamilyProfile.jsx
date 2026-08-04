@@ -46,6 +46,7 @@ export function FamilyProfile() {
               title={name}
               kind="malware family"
               iocs={iocs}
+              watch={{ kind: "family", name }}
             />
             <div
               className={`grid items-start gap-4 ${

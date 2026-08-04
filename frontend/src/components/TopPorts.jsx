@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Link } from "react-router-dom";
 import { topPorts } from "../lib/processor";
 import { PORT_NAMES } from "../lib/ports";
 import { Group } from "../components/ui/Group";
@@ -9,16 +10,18 @@ export function TopPorts({ iocs }) {
   const max = data[0]?.count ?? 1;
 
   return (
-    <Group title="Top ports" description="Across ip:port IOCs">
+    <Group title="Top ports" description="Across ip:port IOCs, click to browse">
       {data.length === 0 ? (
         <p className="text-secondary text-ink-low">
           No ip:port IOCs in range.
         </p>
       ) : (
         data.map((p, i) => (
-          <div
+          <Link
             key={p.port}
-            className="flex items-center gap-2.5 border-t border-line py-1.5 text-body"
+            to={`/iocs?port=${p.port}`}
+            title={`Browse IOCs on port ${p.port}`}
+            className="flex items-center gap-2.5 border-t border-line py-1.5 text-body transition-colors duration-150 hover:bg-lifted/60"
           >
             <span className="w-4 font-mono text-meta text-ink-low tabular-nums">
               {i + 1}
@@ -38,7 +41,7 @@ export function TopPorts({ iocs }) {
             <span className="w-8 text-right font-mono text-meta text-ink-mid tabular-nums">
               {p.count}
             </span>
-          </div>
+          </Link>
         ))
       )}
     </Group>

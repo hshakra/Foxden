@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { ChevronRight, ChevronDown, Download, Search } from "lucide-react";
-import { sortRecentStream, normalizeType } from "../lib/processor";
+import { sortRecentStream, normalizeType, splitIpPort } from "../lib/processor";
 import { THREAT_LABELS } from "../lib/colors";
 import { IOCCard } from "./IOCCard";
 import { EmptyState } from "./states";
@@ -22,8 +22,9 @@ const CONF_PRESETS = [
 ];
 const CLUSTER_MIN = 4;
 const PAGE = 100;
-// stable default so the paging reset effect only fires on real changes
+// stable defaults so the paging reset effect only fires on real changes
 const NO_FILTER = [];
+const NO_GEO = {};
 
 function buildDisplayItems(stream, expanded) {
   const items = [];
@@ -99,6 +100,11 @@ export function FeedTable({
   onTypeFilterChange,
   threatFilter = NO_FILTER,
   onThreatFilterChange,
+  countryFilter = NO_FILTER,
+  onCountryFilterChange,
+  portFilter = NO_FILTER,
+  onPortFilterChange,
+  geoByIp = NO_GEO,
   title = "Live IOC feed",
   cluster = true,
   preview = 0,
@@ -122,9 +128,19 @@ export function FeedTable({
         return false;
       if ((Number(ioc.confidence_level) || 0) < minConf) return false;
       if (familyFilter && ioc.malware_printable !== familyFilter) return false;
+      if (countryFilter.length || portFilter.length) {
+        if (ioc.ioc_type !== "ip:port") return false;
+        const [ip, port] = splitIpPort(ioc.ioc);
+        if (
+          countryFilter.length &&
+          !countryFilter.includes(geoByIp[ip]?.countryCode)
+        )
+          return false;
+        if (portFilter.length && !portFilter.includes(port)) return false;
+      }
       return true;
     });
-  }, [stream, typeFilter, threatFilter, minConf, familyFilter]);
+  }, [stream, typeFilter, threatFilter, minConf, familyFilter, countryFilter, portFilter, geoByIp]);
 
   // families present in the current data, for the family picker
   const familyOptions = useMemo(() => {
@@ -147,7 +163,7 @@ export function FeedTable({
   // reset paging whenever the result set changes shape
   useEffect(() => {
     setLimit(PAGE);
-  }, [typeFilter, threatFilter, minConf, familyFilter, iocs]);
+  }, [typeFilter, threatFilter, minConf, familyFilter, countryFilter, portFilter, iocs]);
 
   const cap = preview || limit;
   const visible = useMemo(() => filtered.slice(0, cap), [filtered, cap]);
@@ -404,6 +420,8 @@ export function FeedTable({
                 onAction={() => {
                   onTypeFilterChange?.([]);
                   onThreatFilterChange?.([]);
+                  onCountryFilterChange?.([]);
+                  onPortFilterChange?.([]);
                   setMinConf(0);
                   onFamilyFilterChange?.(null);
                 }}

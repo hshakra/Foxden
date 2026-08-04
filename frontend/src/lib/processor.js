@@ -181,7 +181,7 @@ export function threatDistribution(iocs) {
 }
 
 // ip:port values split on the last colon so ipv6 stays intact
-function splitIpPort(value) {
+export function splitIpPort(value) {
   const at = value.lastIndexOf(":");
   if (at < 0) return [value, ""];
   return [value.slice(0, at), value.slice(at + 1)];

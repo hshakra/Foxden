@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { geoNaturalEarth1, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import worldData from "world-atlas/countries-110m.json";
@@ -40,6 +41,7 @@ function confidenceColor(avg) {
 }
 
 export function OriginMap({ iocs }) {
+  const navigate = useNavigate();
   const [mode, setMode] = useState("Volume");
   const [hovered, setHovered] = useState(null);
   const ips = useMemo(() => extractIPs(iocs), [iocs]);
@@ -93,8 +95,8 @@ export function OriginMap({ iocs }) {
       title="Origins"
       description={
         mode === "Volume"
-          ? "Malicious IPs by country, brighter means more IOCs"
-          : "Average confidence of malicious IPs per country, 0 to 100"
+          ? "Malicious IPs by country, brighter means more IOCs, click a country to browse"
+          : "Average confidence of malicious IPs per country, 0 to 100, click a country to browse"
       }
       actions={
         <div
@@ -135,6 +137,7 @@ export function OriginMap({ iocs }) {
               >
                 {COUNTRY_PATHS.map((c) => {
                   const style = fillFor(c.a2);
+                  const hasData = Boolean(c.a2 && byCountry[c.a2]);
                   return (
                     <path
                       key={`${c.a2}-${c.name}`}
@@ -143,7 +146,11 @@ export function OriginMap({ iocs }) {
                       fillOpacity={style.opacity}
                       stroke="var(--color-raised)"
                       strokeWidth={0.6}
+                      className={hasData ? "cursor-pointer" : undefined}
                       onMouseEnter={() => setHovered(c)}
+                      onClick={() => {
+                        if (hasData) navigate(`/iocs?country=${c.a2}`);
+                      }}
                     />
                   );
                 })}
@@ -185,9 +192,11 @@ export function OriginMap({ iocs }) {
             </p>
           ) : (
             top.map((c) => (
-              <div
+              <Link
                 key={c.code}
-                className="flex items-center gap-2 py-1 text-secondary"
+                to={`/iocs?country=${c.code}`}
+                title={`Browse IOCs from ${c.name}`}
+                className="flex items-center gap-2 rounded-md py-1 text-secondary transition-colors duration-150 hover:bg-lifted/60"
               >
                 <span className="w-5 font-mono text-meta text-ink-low">
                   {c.code}
@@ -208,7 +217,7 @@ export function OriginMap({ iocs }) {
                 <span className="w-8 text-right font-mono text-meta text-ink-mid tabular-nums">
                   {mode === "Volume" ? c.count : c.avgConf}
                 </span>
-              </div>
+              </Link>
             ))
           )}
         </div>

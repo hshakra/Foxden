@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { typeColor, threatColor, THREAT_LABELS } from "../lib/colors";
-import { normalizeType } from "../lib/processor";
+import { normalizeType, splitIpPort } from "../lib/processor";
+import { PORT_NAMES } from "../lib/ports";
+import { Skeleton } from "./states";
 
 // the browse page sidebar, every facet row is a live count and a filter
 // clicking toggles, the active row highlights
@@ -47,17 +49,37 @@ export function FacetRail({
   onThreatFilterChange,
   familyFilter,
   onFamilyFilterChange,
+  countryFilter,
+  onCountryFilterChange,
+  portFilter,
+  onPortFilterChange,
+  geoByIp,
+  geoLoading,
 }) {
   const facets = useMemo(() => {
     const types = {};
     const threats = {};
     const families = {};
+    const countries = {};
+    const ports = {};
     for (const ioc of iocs) {
       const t = normalizeType(ioc.ioc_type);
       types[t] = (types[t] || 0) + 1;
       threats[ioc.threat_type] = (threats[ioc.threat_type] || 0) + 1;
       families[ioc.malware_printable] =
         (families[ioc.malware_printable] || 0) + 1;
+      if (ioc.ioc_type === "ip:port") {
+        const [ip, port] = splitIpPort(ioc.ioc);
+        if (port) ports[port] = (ports[port] || 0) + 1;
+        const row = geoByIp[ip];
+        if (row) {
+          const entry = (countries[row.countryCode] ??= {
+            name: row.country,
+            count: 0,
+          });
+          entry.count += 1;
+        }
+      }
     }
     const rank = (obj, limit) =>
       Object.entries(obj)
@@ -67,8 +89,12 @@ export function FacetRail({
       types: rank(types, 4),
       threats: rank(threats, 5),
       families: rank(families, 7),
+      countries: Object.entries(countries)
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, 6),
+      ports: rank(ports, 6),
     };
-  }, [iocs]);
+  }, [iocs, geoByIp]);
 
   function toggle(list, value, set) {
     set(list.includes(value) ? list.filter((x) => x !== value) : [...list, value]);
@@ -113,6 +139,52 @@ export function FacetRail({
           />
         ))}
       </Section>
+      {geoLoading ? (
+        <Section title="Country">
+          <div className="flex flex-col gap-2 px-2 py-1">
+            {Array.from({ length: 3 }, (_, i) => (
+              <Skeleton key={i} className="h-3 w-full" />
+            ))}
+          </div>
+        </Section>
+      ) : (
+        facets.countries.length > 0 && (
+          <Section title="Country">
+            {facets.countries.map(([code, entry]) => (
+              <FacetRow
+                key={code}
+                label={entry.name}
+                count={entry.count}
+                active={countryFilter.includes(code)}
+                onClick={() => toggle(countryFilter, code, onCountryFilterChange)}
+              />
+            ))}
+          </Section>
+        )
+      )}
+      {facets.ports.length > 0 && (
+        <Section title="Port">
+          {facets.ports.map(([port, count]) => (
+            <FacetRow
+              key={port}
+              label={
+                <>
+                  <span className="font-mono tabular-nums">{port}</span>
+                  {PORT_NAMES[port] && (
+                    <span className="text-meta text-ink-low">
+                      {" "}
+                      {PORT_NAMES[port]}
+                    </span>
+                  )}
+                </>
+              }
+              count={count}
+              active={portFilter.includes(port)}
+              onClick={() => toggle(portFilter, port, onPortFilterChange)}
+            />
+          ))}
+        </Section>
+      )}
     </aside>
   );
 }

@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import useRecentIOCs from "../hooks/useRecentIOCs";
+import useGeo from "../hooks/useGeo";
+import { extractIPs } from "../lib/processor";
 import { TopBar } from "../components/TopBar";
 import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
 import { FacetRail } from "../components/FacetRail";
@@ -17,6 +19,8 @@ export default function IOCBrowse() {
 
   const typeFilter = useMemo(() => params.getAll("type"), [params]);
   const threatFilter = useMemo(() => params.getAll("threat"), [params]);
+  const countryFilter = useMemo(() => params.getAll("country"), [params]);
+  const portFilter = useMemo(() => params.getAll("port"), [params]);
   const familyFilter = params.get("family");
 
   function updateParams(mutate) {
@@ -30,16 +34,15 @@ export default function IOCBrowse() {
     );
   }
 
-  const setTypeFilter = (list) =>
+  const setListParam = (key) => (list) =>
     updateParams((p) => {
-      p.delete("type");
-      for (const t of list) p.append("type", t);
+      p.delete(key);
+      for (const v of list) p.append(key, v);
     });
-  const setThreatFilter = (list) =>
-    updateParams((p) => {
-      p.delete("threat");
-      for (const t of list) p.append("threat", t);
-    });
+  const setTypeFilter = setListParam("type");
+  const setThreatFilter = setListParam("threat");
+  const setCountryFilter = setListParam("country");
+  const setPortFilter = setListParam("port");
   const setFamilyFilter = (name) =>
     updateParams((p) => {
       if (name) p.set("family", name);
@@ -49,6 +52,20 @@ export default function IOCBrowse() {
   const current = recent.data?.current;
   const iocs = useMemo(() => current ?? [], [current]);
 
+  // country per ioc comes from the same geo lookup the map uses,
+  // the backend cache makes this cheap once the overview has loaded
+  const ips = useMemo(() => extractIPs(iocs), [iocs]);
+  const geo = useGeo(ips);
+  const geoRows = geo.data;
+  const geoByIp = useMemo(() => {
+    const map = {};
+    for (const row of geoRows ?? []) map[row.ip] = row;
+    return map;
+  }, [geoRows]);
+  const geoLoading = ips.length > 0 && geo.isPending;
+  // a country filter cannot apply until the lookup answers
+  const waitingOnGeo = countryFilter.length > 0 && geoLoading;
+
   return (
     <>
       <TopBar
@@ -56,7 +73,7 @@ export default function IOCBrowse() {
         subtitle="Browse all indicators of compromise in range"
       />
       <div className="reveal p-6">
-        {recent.isPending ? (
+        {recent.isPending || waitingOnGeo ? (
           <SkeletonRows rows={12} />
         ) : recent.isError ? (
           <ErrorState error={recent.error} onRetry={() => recent.refetch()} />
@@ -81,6 +98,12 @@ export default function IOCBrowse() {
               onThreatFilterChange={setThreatFilter}
               familyFilter={familyFilter}
               onFamilyFilterChange={setFamilyFilter}
+              countryFilter={countryFilter}
+              onCountryFilterChange={setCountryFilter}
+              portFilter={portFilter}
+              onPortFilterChange={setPortFilter}
+              geoByIp={geoByIp}
+              geoLoading={geoLoading}
             />
             <FeedTable
               iocs={iocs}
@@ -92,6 +115,11 @@ export default function IOCBrowse() {
               onTypeFilterChange={setTypeFilter}
               threatFilter={threatFilter}
               onThreatFilterChange={setThreatFilter}
+              countryFilter={countryFilter}
+              onCountryFilterChange={setCountryFilter}
+              portFilter={portFilter}
+              onPortFilterChange={setPortFilter}
+              geoByIp={geoByIp}
               title="All IOCs"
               maxH="max-h-[72vh]"
             />

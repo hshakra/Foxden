@@ -9,6 +9,7 @@ services:
     buildCommand: pip install -r requirements.txt
     # proxy-headers makes the rate limiter see real client IPs
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --proxy-headers
+    healthCheckPath: /api/health
     envVars:
       - key: THREATFOX_API_KEY
         sync: false # set in the Render dashboard

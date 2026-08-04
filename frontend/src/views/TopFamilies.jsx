@@ -7,6 +7,7 @@ import { usePrefetchFamily } from "../hooks/useFamily";
 import { Sparkline } from "../components/charts/Sparkline";
 import { sparkRange } from "../lib/chartLabels";
 import { TypeLegend } from "../components/charts/TypeLegend";
+import { Group } from "../components/ui/Group";
 
 // family leaderboard for the overview
 // each row carries its own trend line and type mix so a spike or an
@@ -62,58 +63,62 @@ export function TopFamilies({ iocs }) {
   }, [iocs, days]);
 
   return (
-    <div className="rounded-xl border border-line bg-surface-1 p-4">
-      <div className="mb-2 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-        <h4 className="text-[14px] font-semibold">Top families</h4>
-        <TypeLegend />
+    <Group
+      title="Top families"
+      description="Busiest in range, with trend and type mix"
+      actions={
         <Link
           to="/families"
-          className="ml-auto font-mono text-[10px] text-accent-soft hover:underline"
+          className="text-secondary text-accent-soft hover:underline"
         >
-          all families
+          All families
         </Link>
+      }
+    >
+      <div className="mb-1.5">
+        <TypeLegend />
       </div>
       <div
         role="table"
-        className="grid grid-cols-[16px_minmax(0,1fr)_76px_60px_40px] items-center gap-x-3"
+        className="grid grid-cols-[16px_minmax(0,1fr)_92px_60px_40px] items-center gap-x-3"
       >
         <span />
         <span />
-        <span className="pb-1 text-[10.5px] font-medium text-ink-3">
-          {rows[0] ? sparkRange(rows[0].spark) : "trend"}
+        <span className="pb-1 text-secondary font-medium whitespace-nowrap text-ink-low">
+          {rows[0] ? sparkRange(rows[0].spark) : "Trend"}
         </span>
-        <span className="pb-1 text-[10.5px] font-medium text-ink-3">
-          mix
+        <span className="pb-1 text-secondary font-medium text-ink-low">
+          Mix
         </span>
-        <span className="pb-1 text-right text-[10.5px] font-medium text-ink-3">
-          iocs
+        <span className="pb-1 text-right text-secondary font-medium text-ink-low">
+          IOCs
         </span>
         {rows.map((f, i) => (
           <Link
             key={f.name}
             to={`/family/${encodeURIComponent(f.name)}`}
             onMouseEnter={() => prefetchFamily(f.name)}
-            className="col-span-5 grid grid-cols-subgrid items-center border-t border-line py-1.5 hover:bg-surface-2/50"
+            className="col-span-5 grid grid-cols-subgrid items-center border-t border-line py-1.5 transition-colors duration-150 hover:bg-raised"
           >
-            <span className="font-mono text-[10px] text-ink-3 tabular-nums">
+            <span className="font-mono text-meta text-ink-low tabular-nums">
               {i + 1}
             </span>
             <span
-              className="truncate text-xs font-semibold text-accent-soft"
+              className="truncate text-body font-medium text-accent-soft"
               title={f.name}
             >
               {f.name}
             </span>
-            <span className="w-[72px]">
-              <Sparkline points={f.spark} width={72} height={22} />
+            <span className="w-[88px]">
+              <Sparkline points={f.spark} width={88} height={22} />
             </span>
             <MixBar mix={f.mix} />
-            <span className="text-right font-mono text-[10px] text-ink-2 tabular-nums">
+            <span className="text-right font-mono text-meta text-ink-mid tabular-nums">
               {f.count}
             </span>
           </Link>
         ))}
       </div>
-    </div>
+    </Group>
   );
 }

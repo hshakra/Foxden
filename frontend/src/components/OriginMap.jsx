@@ -13,6 +13,7 @@ import { CONF_COLORS } from "../lib/colors";
 import { Sparkline } from "./charts/Sparkline";
 import { useRange } from "../lib/range";
 import { Skeleton } from "./states";
+import { Group } from "./ui/Group";
 
 // the overview hero, a world map shaded by where malicious ips sit
 // toggles between volume (how many) and confidence (how certain)
@@ -83,7 +84,7 @@ export function OriginMap({ iocs }) {
   // shading strength, sqrt keeps mid sized countries visible next to the top one
   function fillFor(a2) {
     const entry = a2 ? byCountry[a2] : null;
-    if (!entry) return { fill: "var(--color-surface-3)", opacity: 0.55 };
+    if (!entry) return { fill: "var(--color-overlay)", opacity: 0.55 };
     if (mode === "Volume") {
       const t = Math.sqrt(entry.count / maxCount);
       return { fill: "var(--color-accent)", opacity: 0.25 + t * 0.7 };
@@ -94,12 +95,12 @@ export function OriginMap({ iocs }) {
   const hoveredEntry = hovered ? byCountry[hovered.a2] : null;
 
   return (
-    <div className="rounded-xl border border-line bg-surface-1 p-4">
-      <div className="mb-3 flex items-baseline gap-2.5">
-        <h4 className="text-[14px] font-semibold">Origin map</h4>
-        <span className="text-xs text-ink-2">Malicious IPs by country</span>
+    <Group
+      title="Origins"
+      description="Malicious IPs by country"
+      actions={
         <div
-          className="ml-auto flex overflow-hidden rounded-lg border border-line font-mono text-[10px]"
+          className="flex overflow-hidden rounded-md border border-line"
           role="radiogroup"
           aria-label="Map metric"
         >
@@ -110,20 +111,20 @@ export function OriginMap({ iocs }) {
               role="radio"
               aria-checked={mode === m}
               onClick={() => setMode(m)}
-              className={`px-2.5 py-1 transition-colors ${
+              className={`px-2.5 py-1 text-secondary transition-colors duration-150 ${
                 mode === m
-                  ? "bg-surface-2 text-ink"
-                  : "text-ink-2 hover:text-ink"
+                  ? "bg-lifted text-ink"
+                  : "text-ink-mid hover:text-ink"
               }`}
             >
               {m}
             </button>
           ))}
         </div>
-      </div>
-
+      }
+    >
       <div className="grid gap-4 lg:grid-cols-[1fr_215px]">
-        <div className="relative overflow-hidden rounded-lg border border-line bg-surface-0">
+        <div className="relative overflow-hidden rounded-lg border border-line bg-raised">
           {loading ? (
             <Skeleton className="h-[300px] w-full" />
           ) : (
@@ -142,7 +143,7 @@ export function OriginMap({ iocs }) {
                       d={c.d}
                       fill={style.fill}
                       fillOpacity={style.opacity}
-                      stroke="var(--color-surface-0)"
+                      stroke="var(--color-raised)"
                       strokeWidth={0.6}
                       onMouseEnter={() => setHovered(c)}
                     />
@@ -150,15 +151,15 @@ export function OriginMap({ iocs }) {
                 })}
               </svg>
               {hovered && (
-                <div className="pointer-events-none absolute left-3 top-3 rounded-lg border border-line-2 bg-surface-3 px-2.5 py-1.5 font-mono text-[10px]">
+                <div className="pointer-events-none absolute left-3 top-3 rounded-lg border border-line-strong bg-overlay px-2.5 py-1.5 font-mono text-meta shadow-lg">
                   <b>{hoveredEntry?.name ?? hovered.name}</b>
                   {hoveredEntry ? (
-                    <span className="text-ink-2">
+                    <span className="text-ink-mid">
                       {" "}
                       {hoveredEntry.count} IOCs, avg conf {hoveredEntry.avgConf}
                     </span>
                   ) : (
-                    <span className="text-ink-3"> no recorded IOCs</span>
+                    <span className="text-ink-low"> no recorded IOCs</span>
                   )}
                 </div>
               )}
@@ -167,7 +168,7 @@ export function OriginMap({ iocs }) {
         </div>
 
         <div>
-          <p className="mb-2 text-[11px] font-medium text-ink-3">
+          <p className="mb-2 text-secondary font-medium text-ink-low">
             Top origins
           </p>
           {loading ? (
@@ -177,22 +178,24 @@ export function OriginMap({ iocs }) {
               ))}
             </div>
           ) : geo.isError ? (
-            <p className="text-xs text-ink-3">
+            <p className="text-secondary text-ink-low">
               Geolocation is unavailable right now.
             </p>
           ) : top.length === 0 ? (
-            <p className="text-xs text-ink-3">No ip:port IOCs in range.</p>
+            <p className="text-secondary text-ink-low">
+              No ip:port IOCs in range.
+            </p>
           ) : (
             top.map((c) => (
               <div
                 key={c.code}
-                className="flex items-center gap-2 py-1 text-[11.5px]"
+                className="flex items-center gap-2 py-1 text-secondary"
               >
-                <span className="w-5 font-mono text-[9.5px] text-ink-3">
+                <span className="w-5 font-mono text-meta text-ink-low">
                   {c.code}
                 </span>
                 <span className="truncate">{c.name}</span>
-                <span className="ml-auto h-[5px] w-11 shrink-0 overflow-hidden rounded-sm bg-surface-0">
+                <span className="ml-auto h-[5px] w-11 shrink-0 overflow-hidden rounded-sm bg-bg">
                   <span
                     className="block h-full"
                     style={{
@@ -204,19 +207,19 @@ export function OriginMap({ iocs }) {
                     }}
                   />
                 </span>
-                <span className="w-8 text-right font-mono text-[9.5px] text-ink-3 tabular-nums">
+                <span className="w-8 text-right font-mono text-meta text-ink-mid tabular-nums">
                   {mode === "Volume" ? c.count : c.avgConf}
                 </span>
               </div>
             ))
           )}
 
-          <p className="mb-1 mt-4 text-[11px] font-medium text-ink-3">
+          <p className="mb-1 mt-4 text-secondary font-medium text-ink-low">
             {days === 1 ? "24-hour" : `${days}-day`} activity
           </p>
           <Sparkline points={spark} showLabels />
         </div>
       </div>
-    </div>
+    </Group>
   );
 }

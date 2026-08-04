@@ -30,30 +30,33 @@ function Freshness() {
 
   if (!label) return null;
   return (
-    <span className="hidden text-xs text-ink-3 tabular-nums md:inline">
+    <span className="hidden text-secondary text-ink-low tabular-nums md:inline">
       Updated {label} ago
     </span>
   );
 }
 
-export function TopBar({ title, subtitle, crumbs, children }) {
+// page header, title and description on the left, controls on the right
+// descriptionExtra renders beside the description, the overview uses it
+// for the new since last visit link
+export function TopBar({ title, subtitle, descriptionExtra, crumbs, children }) {
   const { days, setDays } = useRange();
   const { openLookup } = useLookup();
 
   return (
-    <div className="flex items-center gap-3.5 border-b border-line px-5 py-3">
+    <div className="flex items-center gap-4 border-b border-line px-6 py-4">
       {crumbs?.length > 0 && (
         <Link
           to={crumbs[0].to}
           aria-label={`Back to ${crumbs[0].label}`}
-          className="rounded-lg border border-line p-1.5 text-ink-3 hover:border-line-2 hover:text-ink"
+          className="rounded-md border border-line p-1.5 text-ink-low transition-colors duration-150 hover:border-line-strong hover:text-ink"
         >
           <ArrowLeft size={14} />
         </Link>
       )}
-      <div className="leading-tight">
+      <div className="min-w-0">
         {crumbs?.length > 0 && (
-          <p className="text-[11px] text-ink-3">
+          <p className="text-meta text-ink-low">
             {crumbs.map((c, i) => (
               <span key={c.label}>
                 {i > 0 && " / "}
@@ -68,8 +71,15 @@ export function TopBar({ title, subtitle, crumbs, children }) {
             ))}
           </p>
         )}
-        <h1 className="text-[17px] font-semibold tracking-tight">{title}</h1>
-        {subtitle && <p className="text-xs text-ink-2">{subtitle}</p>}
+        <h1 className="truncate text-display font-medium tracking-tight">
+          {title}
+        </h1>
+        {(subtitle || descriptionExtra) && (
+          <p className="flex items-center gap-3 text-secondary text-ink-mid">
+            {subtitle}
+            {descriptionExtra}
+          </p>
+        )}
       </div>
 
       {children}
@@ -77,17 +87,17 @@ export function TopBar({ title, subtitle, crumbs, children }) {
       <button
         type="button"
         onClick={openLookup}
-        className="ml-auto hidden min-w-[210px] items-center gap-2 rounded-lg border border-line bg-surface-1 px-3 py-1.5 text-left text-xs text-ink-3 hover:border-line-2 hover:text-ink-2 md:flex"
+        className="ml-auto hidden min-w-[210px] items-center gap-2 rounded-md border border-line bg-raised px-3 py-1.5 text-left text-secondary text-ink-low transition-colors duration-150 hover:border-line-strong hover:text-ink-mid md:flex"
       >
         <Search size={13} />
         Search IOC, family, or tag
-        <kbd className="ml-auto rounded border border-line-2 px-1.5 font-mono text-[10px]">
+        <kbd className="ml-auto rounded border border-line-strong px-1.5 font-mono text-meta">
           /
         </kbd>
       </button>
 
       <div
-        className="flex overflow-hidden rounded-lg border border-line"
+        className="flex overflow-hidden rounded-md border border-line"
         role="radiogroup"
         aria-label="Time range"
       >
@@ -98,10 +108,10 @@ export function TopBar({ title, subtitle, crumbs, children }) {
             role="radio"
             aria-checked={days === d}
             onClick={() => setDays(d)}
-            className={`px-2.5 py-1.5 text-xs transition-colors ${
+            className={`px-2.5 py-1.5 text-secondary transition-colors duration-150 ${
               days === d
                 ? "bg-accent font-medium text-white"
-                : "text-ink-2 hover:bg-surface-2 hover:text-ink"
+                : "text-ink-mid hover:bg-lifted hover:text-ink"
             }`}
           >
             {label}

@@ -5,20 +5,26 @@ import useRecentIOCs from "../hooks/useRecentIOCS.js";
 import useFrozenFeed from "../hooks/useFrozenFeed";
 import useLastVisit from "../hooks/useLastVisit";
 import { Watchlist } from "../components/Watchlist";
-import { TrendingStrip } from "../components/TrendingStrip";
 import { useRange } from "../lib/range";
 import { TopBar } from "../components/TopBar";
 import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
-import { SignalStrip } from "../components/SignalStrip";
+import { Situation } from "../components/Situation";
+import { CompositionBars } from "../components/CompositionBars";
+import { Movers } from "../components/Movers";
 import { OriginMap } from "../components/OriginMap";
 import { FeedTable } from "../components/FeedTable";
 import { IOCDrawer } from "../components/IOCDrawer";
+import { Group } from "../components/ui/Group";
 import { TopFamilies } from "./TopFamilies.jsx";
 import { TopTags } from "./TopTags.jsx";
 import { TopPorts } from "./TopPorts.jsx";
 
-// the overview screen
-// signal strip, then the map, then the feed with its detail drawer
+function scrollToFeed() {
+  document.getElementById("ioc-feed")?.scrollIntoView({ behavior: "smooth" });
+}
+
+// the overview, titled groups in macro to micro order
+// situation, composition, origins, movers, watchlist, latest, leaders
 // background refetches wait behind the refresh pill instead of
 // shifting the page, and the newest ioc starts selected on desktop
 export default function LiveFeed() {
@@ -57,8 +63,22 @@ export default function LiveFeed() {
 
   return (
     <>
-      <TopBar title="Overview" subtitle="Global threat activity in range" />
-      <div className="reveal flex flex-col gap-6 p-5">
+      <TopBar
+        title="Overview"
+        subtitle="Global threat activity in range"
+        descriptionExtra={
+          sinceLastVisit > 0 && (
+            <button
+              type="button"
+              onClick={scrollToFeed}
+              className="font-medium text-accent tabular-nums hover:underline"
+            >
+              {sinceLastVisit.toLocaleString()} new since your last visit
+            </button>
+          )
+        }
+      />
+      <div className="reveal flex flex-col gap-8 p-6">
         {recent.isPending && !frozen.data ? (
           <SkeletonRows rows={10} />
         ) : recent.isError && !frozen.data ? (
@@ -74,38 +94,48 @@ export default function LiveFeed() {
               <button
                 type="button"
                 onClick={frozen.refresh}
-                className="fixed left-1/2 top-4 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-accent/50 bg-surface-3 px-4 py-2 font-mono text-[11px] text-accent-soft shadow-xl transition-colors hover:bg-surface-2"
+                className="fixed left-1/2 top-4 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-accent/50 bg-overlay px-4 py-2 font-mono text-meta text-accent-soft shadow-xl transition-colors duration-150 hover:bg-lifted"
               >
                 <RefreshCw size={12} />
                 {frozen.pendingCount} new IOCs arrived, refresh
               </button>
             )}
 
-            <Watchlist iocs={iocs} />
-            <TrendingStrip iocs={iocs} previous={previous} />
-            {sinceLastVisit > 0 && (
-              <p className="-my-3 font-mono text-[10px] text-ink-3 tabular-nums">
-                {sinceLastVisit.toLocaleString()} new IOCs since your last
-                visit
-              </p>
-            )}
-            <SignalStrip
-              iocs={iocs}
-              previous={previous}
-              onTypeClick={(type) => {
-                setTypeFilter([type]);
-                document
-                  .getElementById("ioc-feed")
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }}
-              onThreatClick={(threat) => {
-                setThreatFilter([threat]);
-                document
-                  .getElementById("ioc-feed")
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }}
-            />
+            <Group
+              title="Situation"
+              description="The current window at a glance"
+            >
+              <Situation iocs={iocs} previous={previous} />
+            </Group>
+
+            <Group
+              title="Composition"
+              description="What the indicators are and what they are used for, click to filter the feed"
+            >
+              <CompositionBars
+                iocs={iocs}
+                onTypeClick={(type) => {
+                  setTypeFilter([type]);
+                  scrollToFeed();
+                }}
+                onThreatClick={(threat) => {
+                  setThreatFilter([threat]);
+                  scrollToFeed();
+                }}
+              />
+            </Group>
+
             <OriginMap iocs={iocs} />
+
+            <Group
+              title="Movers"
+              description="Change against each family's own history"
+            >
+              <Movers iocs={iocs} previous={previous} />
+            </Group>
+
+            <Watchlist iocs={iocs} />
+
             <div
               className={`grid items-start gap-4 ${
                 selected ? "lg:grid-cols-[minmax(0,1fr)_300px]" : ""
@@ -127,10 +157,10 @@ export default function LiveFeed() {
                 />
                 <Link
                   to="/iocs"
-                  className="mt-2 flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-line-2 py-2 font-mono text-[10.5px] text-ink-2 hover:border-accent/50 hover:text-ink"
+                  className="mt-2 flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-line-strong py-2 text-secondary text-ink-mid transition-colors duration-150 hover:border-accent/50 hover:text-ink"
                 >
-                  browse all {iocs.length.toLocaleString()} IOCs with facets
-                  <ArrowRight size={11} />
+                  Browse all {iocs.length.toLocaleString()} IOCs with facets
+                  <ArrowRight size={12} />
                 </Link>
               </div>
               {selected && (
@@ -142,7 +172,8 @@ export default function LiveFeed() {
                 />
               )}
             </div>
-            <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-[1.3fr_1fr_0.8fr]">
+
+            <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-[1.3fr_1fr_0.8fr]">
               <TopFamilies iocs={iocs} />
               <TopTags iocs={iocs} />
               <TopPorts iocs={iocs} />

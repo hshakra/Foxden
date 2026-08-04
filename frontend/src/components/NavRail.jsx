@@ -37,11 +37,12 @@ const groups = [
   },
 ];
 
+// active rows sit on a lifted surface behind a 2px accent edge
 const rowClass = (active) =>
-  `flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors ${
+  `flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-body transition-colors duration-150 ${
     active
-      ? "bg-surface-2 font-medium text-ink"
-      : "text-ink-2 hover:bg-surface-2/60 hover:text-ink"
+      ? "bg-lifted font-medium text-ink shadow-[inset_2px_0_0_var(--color-accent)]"
+      : "text-ink-mid hover:bg-lifted/60 hover:text-ink"
   }`;
 
 export function NavRail() {
@@ -49,26 +50,26 @@ export function NavRail() {
   const { pathname } = useLocation();
 
   return (
-    <aside className="flex w-[200px] shrink-0 flex-col border-r border-line bg-surface-1 px-3 py-4">
+    <aside className="flex w-[200px] shrink-0 flex-col border-r border-line bg-raised px-3 py-4">
       <NavLink
         to="/"
         aria-label="Foxden home"
-        className="mb-5 flex items-center gap-2.5 px-2"
+        className="mb-6 flex items-center gap-2.5 px-2"
       >
         <FoxLogo size={22} />
-        <span className="text-[15px] font-bold tracking-tight">Foxden</span>
+        <span className="text-[15px] font-medium tracking-tight">Foxden</span>
       </NavLink>
 
       <nav className="flex flex-col gap-4">
         {groups.map((group) => (
           <div key={group.label}>
-            <p className="mb-1 px-2.5 text-[11px] font-medium text-ink-3">
+            <p className="mb-1 px-2.5 text-meta font-medium text-ink-low">
               {group.label}
             </p>
             <div className="flex flex-col gap-0.5">
               {group.items.map(({ to, label, icon: Icon, match }) => (
                 <NavLink key={to} to={to} className={rowClass(match(pathname))}>
-                  <Icon size={15} strokeWidth={2} />
+                  <Icon size={15} strokeWidth={1.5} />
                   {label}
                 </NavLink>
               ))}
@@ -76,22 +77,22 @@ export function NavRail() {
           </div>
         ))}
         <div>
-          <p className="mb-1 px-2.5 text-[11px] font-medium text-ink-3">
+          <p className="mb-1 px-2.5 text-meta font-medium text-ink-low">
             Tools
           </p>
           <button type="button" onClick={openLookup} className={rowClass(false)}>
-            <Search size={15} strokeWidth={2} />
+            <Search size={15} strokeWidth={1.5} />
             Lookup
-            <kbd className="ml-auto rounded border border-line-2 px-1.5 font-mono text-[10px] text-ink-3">
+            <kbd className="ml-auto rounded border border-line-strong px-1.5 font-mono text-meta text-ink-low">
               /
             </kbd>
           </button>
         </div>
       </nav>
 
-      <div className="mt-auto border-t border-line px-2.5 pt-3 text-[11px] leading-relaxed text-ink-3">
+      <div className="mt-auto border-t border-line px-2.5 pt-3 text-meta leading-relaxed text-ink-low">
         <p className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-good" />
+          <span className="h-1.5 w-1.5 rounded-full bg-accent" />
           Live feed
         </p>
         <p>Data: ThreatFox by abuse.ch</p>

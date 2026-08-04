@@ -4,7 +4,7 @@
 // medium and low get alert colors, the eye should go to the exceptions
 export function confidenceInfo(level) {
   const n = Number(level) || 0;
-  if (n >= 75) return { label: "HIGH", tone: "quiet", value: n };
-  if (n >= 50) return { label: "MED", tone: "warn", value: n };
-  return { label: "LOW", tone: "bad", value: n };
+  if (n >= 75) return { label: "High", tone: "quiet", value: n };
+  if (n >= 50) return { label: "Medium", tone: "warn", value: n };
+  return { label: "Low", tone: "bad", value: n };
 }

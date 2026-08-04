@@ -1,10 +1,12 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Star, X, Shield, Tag } from "lucide-react";
+import { X, Shield, Tag } from "lucide-react";
 import { useWatchlist, toggleWatch } from "../lib/watchlist";
+import { table } from "../lib/table";
+import { Group } from "./ui/Group";
 
-// the pinned strip on the overview
-// shows each watched family or tag with its activity in the current range
+// the entities this user tracks, with their activity in the current range
+// renders nothing until something is watched
 export function Watchlist({ iocs }) {
   const watchlist = useWatchlist();
 
@@ -24,49 +26,48 @@ export function Watchlist({ iocs }) {
   if (watchlist.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-line bg-surface-1 p-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 flex items-center gap-1.5 text-[11px] font-medium text-ink-3">
-          <Star size={11} className="text-accent-soft" /> Watchlist
-        </span>
-        {watchlist.map((w) => {
-          const count = counts[w.kind]?.[w.name] ?? 0;
-          const to =
-            w.kind === "family"
-              ? `/family/${encodeURIComponent(w.name)}`
-              : `/tag/${encodeURIComponent(w.name)}`;
-          const Icon = w.kind === "family" ? Shield : Tag;
-          return (
-            <span
-              key={`${w.kind}:${w.name}`}
-              className="flex items-center overflow-hidden rounded-lg border border-line-2 bg-surface-2"
-            >
-              <Link
-                to={to}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11.5px] font-semibold text-ink hover:text-accent-soft"
-              >
-                <Icon size={11} className="text-ink-3" />
-                {w.name}
-                <b
-                  className={`font-mono text-[10px] tabular-nums ${
-                    count > 0 ? "text-accent-soft" : "text-ink-3"
-                  }`}
-                >
-                  {count}
-                </b>
-              </Link>
-              <button
-                type="button"
-                onClick={() => toggleWatch(w.kind, w.name)}
-                aria-label={`Remove ${w.name} from watchlist`}
-                className="border-l border-line px-1.5 py-1.5 text-ink-3 hover:text-bad"
-              >
-                <X size={11} />
-              </button>
-            </span>
-          );
-        })}
-      </div>
-    </div>
+    <Group title="Watchlist" description="What you track, activity in range">
+      <table className="w-full border-collapse lg:max-w-xl">
+        <tbody>
+          {watchlist.map((w) => {
+            const count = counts[w.kind]?.[w.name] ?? 0;
+            const to =
+              w.kind === "family"
+                ? `/family/${encodeURIComponent(w.name)}`
+                : `/tag/${encodeURIComponent(w.name)}`;
+            const Icon = w.kind === "family" ? Shield : Tag;
+            return (
+              <tr key={`${w.kind}:${w.name}`} className={table.row}>
+                <td className={`${table.cell} max-w-0`}>
+                  <Link
+                    to={to}
+                    className="flex items-center gap-2 font-medium text-accent-soft hover:underline"
+                    title={w.name}
+                  >
+                    <Icon size={14} className="shrink-0 text-ink-low" />
+                    <span className="truncate">{w.name}</span>
+                  </Link>
+                </td>
+                <td className={`${table.cellNum} w-20`}>
+                  <span className={count > 0 ? "" : "text-ink-low"}>
+                    {count}
+                  </span>
+                </td>
+                <td className={`${table.cell} w-10`}>
+                  <button
+                    type="button"
+                    onClick={() => toggleWatch(w.kind, w.name)}
+                    aria-label={`Remove ${w.name} from watchlist`}
+                    className="grid place-content-center text-ink-low transition-colors duration-150 hover:text-conf-low"
+                  >
+                    <X size={13} />
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </Group>
   );
 }

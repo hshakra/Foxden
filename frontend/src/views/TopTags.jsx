@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { rankTags } from "../utils/processor";
 import { usePrefetchTag } from "../hooks/useTag";
+import { Group } from "../components/ui/Group";
 
 // ranked tag list for the overview, bars instead of a chip pile
 export function TopTags({ iocs }) {
@@ -10,46 +11,47 @@ export function TopTags({ iocs }) {
   const max = data[0]?.count ?? 1;
 
   return (
-    <div className="rounded-xl border border-line bg-surface-1 p-4">
-      <div className="mb-2 flex items-baseline gap-2.5">
-        <h4 className="text-[14px] font-semibold">Trending tags</h4>
-        <span className="text-xs text-ink-2">Most used in range</span>
+    <Group
+      title="Trending tags"
+      description="Most used in range"
+      actions={
         <Link
           to="/tags"
-          className="ml-auto font-mono text-[10px] text-accent-soft hover:underline"
+          className="text-secondary text-accent-soft hover:underline"
         >
-          all tags
+          All tags
         </Link>
-      </div>
+      }
+    >
       <div>
         {data.map((t, i) => (
           <Link
             key={t.tag}
             to={`/tag/${encodeURIComponent(t.tag)}`}
             onMouseEnter={() => prefetchTag(t.tag)}
-            className="flex items-center gap-2.5 border-t border-line py-1.5 text-xs hover:bg-surface-2/50"
+            className="flex items-center gap-2.5 border-t border-line py-1.5 text-body transition-colors duration-150 hover:bg-raised"
           >
-            <span className="w-4 font-mono text-[10px] text-ink-3 tabular-nums">
+            <span className="w-4 font-mono text-meta text-ink-low tabular-nums">
               {i + 1}
             </span>
             <span
-              className="truncate font-mono text-[10.5px] text-t-domain"
+              className="truncate font-mono text-meta text-accent-soft"
               title={t.tag}
             >
               {t.tag}
             </span>
-            <span className="ml-auto h-[5px] w-24 shrink-0 overflow-hidden rounded-sm bg-surface-0">
+            <span className="ml-auto h-[5px] w-24 shrink-0 overflow-hidden rounded-sm bg-bg">
               <span
-                className="block h-full bg-gradient-to-r from-accent to-accent-soft"
+                className="block h-full bg-accent"
                 style={{ width: `${Math.round((t.count / max) * 100)}%` }}
               />
             </span>
-            <span className="w-9 text-right font-mono text-[10px] text-ink-2 tabular-nums">
+            <span className="w-9 text-right font-mono text-meta text-ink-mid tabular-nums">
               {t.count}
             </span>
           </Link>
         ))}
       </div>
-    </div>
+    </Group>
   );
 }

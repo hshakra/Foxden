@@ -60,9 +60,11 @@ export function FamilyHeatmap({ iocs }) {
             }}
           >
             <span />
+            {/* hourly buckets span 25 hours so the first and last share a
+                clock label, position is the only safe key */}
             {grid.labels.map((label, i) => (
               <span
-                key={label}
+                key={i}
                 className="truncate text-center font-mono text-[10px] text-ink-low"
               >
                 {i % labelEvery === 0 ? (hourly ? label : shortLabel(label)) : ""}
@@ -98,9 +100,9 @@ function Row({ row, max, onHover }) {
       >
         {row.name}
       </Link>
-      {row.cells.map((cell) => (
+      {row.cells.map((cell, i) => (
         <span
-          key={cell.date}
+          key={i}
           title={`${row.name}, ${cell.date}: ${cell.count}`}
           className="h-[18px] rounded-[3px]"
           style={{ background: heatColor(Math.sqrt(cell.count / max)) }}

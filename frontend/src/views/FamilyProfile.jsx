@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Shield } from "lucide-react";
 import useFamily from "../hooks/useFamily";
 import { isNoResult } from "../lib/api";
 import { TopBar } from "../components/TopBar";
@@ -24,7 +23,7 @@ export function FamilyProfile() {
         subtitle="Malware family"
         crumbs={[{ label: "Families", to: "/families" }, { label: name }]}
       />
-      <div className="reveal flex flex-col gap-6 p-5">
+      <div className="reveal flex flex-col gap-8 p-6">
         {family.isPending ? (
           <SkeletonRows rows={8} />
         ) : family.isError && isNoResult(family.error) ? (
@@ -42,9 +41,7 @@ export function FamilyProfile() {
         ) : (
           <>
             <DetailHeader
-              icon={Shield}
-              title={name}
-              kind="malware family"
+              kind="family"
               iocs={iocs}
               watch={{ kind: "family", name }}
             />
@@ -59,6 +56,7 @@ export function FamilyProfile() {
                 onSelect={setSelected}
                 title="IOCs"
                 cluster={false}
+                showFamily={false}
               />
               {selected && (
                 <IOCDrawer

@@ -1,18 +1,33 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Search, X, Shield, Tag, CornerDownLeft } from "lucide-react";
+import {
+  Search,
+  X,
+  Shield,
+  Tag,
+  CornerDownLeft,
+  Copy,
+  Check,
+} from "lucide-react";
 import { api } from "../lib/api";
 import useRecentIOCs from "../hooks/useRecentIOCS";
 import { usePrefetchFamily } from "../hooks/useFamily";
-import { IOCCard } from "../views/IOCCard";
+import { TypeBadge } from "../views/IOCCard";
 import { IOCDrawer } from "./IOCDrawer";
 import { SkeletonRows, EmptyState, ErrorState } from "./states";
+import { confidenceInfo } from "../lib/confidence";
+import { CONF_COLORS, TYPE_COLORS } from "../lib/colors";
+import { timeAgo } from "../lib/time";
+import { midEllipsis } from "../lib/format";
+import { Chip } from "./ui/Chip";
+import { Badge } from "./ui/Badge";
 
 // global lookup that answers while you type
 // every keystroke matches families, tags, and iocs already in range
 // enter asks threatfox for the full record of an exact indicator
 const MAX_PER_SECTION = 5;
+
+const EXAMPLES = ["AsyncRAT", "ClickFix", "185.215.113.66"];
 
 function localMatches(iocs, term) {
   const q = term.toLowerCase();
@@ -40,11 +55,86 @@ function localMatches(iocs, term) {
   return { families: rank(families), tags: rank(tags), iocs: hits };
 }
 
+// name what the input looks like so the user knows what a lookup will do
+function detectKind(term) {
+  const t = term.trim();
+  if (!t) return null;
+  if (/^\d{1,3}(\.\d{1,3}){3}(:\d+)?$/.test(t)) {
+    return { label: t.includes(":") ? "ip:port" : "ip", color: TYPE_COLORS["ip:port"] };
+  }
+  if (/^[0-9a-f]{64}$/i.test(t)) return { label: "sha256", color: TYPE_COLORS.hash };
+  if (/^[0-9a-f]{40}$/i.test(t)) return { label: "sha1", color: TYPE_COLORS.hash };
+  if (/^[0-9a-f]{32}$/i.test(t)) return { label: "md5", color: TYPE_COLORS.hash };
+  if (/^https?:\/\//i.test(t)) return { label: "url", color: TYPE_COLORS.url };
+  if (/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(t)) {
+    return { label: "domain", color: TYPE_COLORS.domain };
+  }
+  return null;
+}
+
 function SectionLabel({ children }) {
   return (
-    <p className="mb-1 mt-3 text-[11px] font-medium text-ink-3 first:mt-0">
+    <p className="mb-1.5 mt-4 text-secondary font-medium text-ink-low first:mt-0">
       {children}
     </p>
+  );
+}
+
+// compact result row built for the modal, the copy button owns its column
+function LookupRow({ ioc, selected, highlighted, onSelect }) {
+  const [copied, setCopied] = useState(false);
+  const conf = confidenceInfo(ioc.confidence_level);
+  const confColor = CONF_COLORS[conf.tone];
+  const isHash = ioc.ioc_type?.endsWith("_hash");
+
+  async function copyValue(e) {
+    e.stopPropagation();
+    await navigator.clipboard.writeText(ioc.ioc);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
+  }
+
+  return (
+    <div
+      role="row"
+      onClick={onSelect}
+      className={`flex h-10 cursor-pointer items-center gap-2.5 border-b border-line px-2 transition-colors duration-150 last:border-0 ${
+        selected
+          ? "bg-lifted shadow-[inset_2px_0_0_var(--color-accent)]"
+          : highlighted
+            ? "bg-lifted/60"
+            : "hover:bg-lifted/60"
+      }`}
+    >
+      <TypeBadge type={ioc.ioc_type} />
+      <span
+        className="min-w-0 flex-1 truncate font-mono text-secondary"
+        title={ioc.ioc}
+      >
+        {isHash ? midEllipsis(ioc.ioc, 36) : ioc.ioc}
+      </span>
+      <span
+        className="shrink-0 font-mono text-meta tabular-nums"
+        style={{ color: conf.tone === "quiet" ? "var(--color-ink-mid)" : confColor }}
+      >
+        {conf.value} {conf.label}
+      </span>
+      <span className="shrink-0 font-mono text-meta text-ink-low tabular-nums">
+        {timeAgo(ioc.first_seen)}
+      </span>
+      <button
+        type="button"
+        onClick={copyValue}
+        aria-label="Copy IOC value"
+        className="grid h-6 w-6 shrink-0 place-content-center rounded-md border border-line text-ink-low transition-colors duration-150 hover:border-line-strong hover:text-ink"
+      >
+        {copied ? (
+          <Check size={12} className="text-accent-soft" />
+        ) : (
+          <Copy size={12} />
+        )}
+      </button>
+    </div>
   );
 }
 
@@ -52,6 +142,7 @@ export function LookupModal({ open, onClose }) {
   const [term, setTerm] = useState("");
   const [submitted, setSubmitted] = useState("");
   const [selected, setSelected] = useState(null);
+  const [highlighted, setHighlighted] = useState(-1);
   const recent = useRecentIOCs();
   const prefetchFamily = usePrefetchFamily();
 
@@ -72,11 +163,14 @@ export function LookupModal({ open, onClose }) {
     return localMatches(pool ?? [], q);
   }, [term, pool]);
 
+  const kind = detectKind(term);
+
   // reset on the way out so each open starts fresh
   const close = useCallback(() => {
     setTerm("");
     setSubmitted("");
     setSelected(null);
+    setHighlighted(-1);
     onClose();
   }, [onClose]);
 
@@ -99,9 +193,26 @@ export function LookupModal({ open, onClose }) {
     local.tags.length === 0 &&
     local.iocs.length === 0;
 
+  // the list the arrow keys walk through
+  const rows = showLocal ? local.iocs : submitted ? (result.data ?? []) : [];
+
+  function onInputKeyDown(e) {
+    if (rows.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlighted((i) => Math.min(i + 1, rows.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlighted((i) => Math.max(i - 1, -1));
+    } else if (e.key === "Enter" && highlighted >= 0) {
+      e.preventDefault();
+      setSelected(rows[highlighted]);
+    }
+  }
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-surface-0/70 p-4 pt-[10vh] backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-bg/70 p-4 pt-[10vh] backdrop-blur-sm"
       onClick={close}
     >
       <div
@@ -109,30 +220,34 @@ export function LookupModal({ open, onClose }) {
         aria-modal="true"
         aria-label="IOC lookup"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-3xl rounded-xl border border-line-2 bg-surface-3 p-4 shadow-2xl"
+        className="w-full max-w-3xl rounded-lg border border-line-strong bg-overlay p-4 shadow-2xl"
       >
         <form
           className="flex items-center gap-2.5"
           onSubmit={(e) => {
             e.preventDefault();
             setSelected(null);
+            setHighlighted(-1);
             setSubmitted(term.trim());
           }}
         >
-          <Search size={15} className="shrink-0 text-ink-3" />
+          <Search size={15} className="shrink-0 text-ink-low" />
           <input
             autoFocus
             value={term}
             onChange={(e) => {
               setTerm(e.target.value);
               setSubmitted("");
+              setHighlighted(-1);
             }}
-            placeholder="Type to search this range, enter for full ThreatFox lookup…"
-            className="min-w-0 flex-1 bg-transparent font-mono text-[12px] text-ink placeholder:text-ink-3 focus:outline-none"
+            onKeyDown={onInputKeyDown}
+            placeholder="Type to search this range, enter for full ThreatFox lookup"
+            className="min-w-0 flex-1 bg-transparent font-mono text-secondary text-ink placeholder:text-ink-low focus:outline-none"
           />
+          {kind && <Badge color={kind.color}>{kind.label}</Badge>}
           <button
             type="submit"
-            className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-accent/85"
+            className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-secondary font-medium text-white transition-colors duration-150 hover:bg-accent/85"
           >
             <CornerDownLeft size={11} /> ThreatFox
           </button>
@@ -140,16 +255,32 @@ export function LookupModal({ open, onClose }) {
             type="button"
             onClick={close}
             aria-label="Close lookup"
-            className="text-ink-3 hover:text-ink"
+            className="text-ink-low transition-colors duration-150 hover:text-ink"
           >
             <X size={15} />
           </button>
         </form>
 
+        {!local && !submitted && (
+          <div className="mt-3 border-t border-line pt-3">
+            <p className="text-secondary text-ink-mid">
+              Search anything in the current range, or press enter to ask
+              ThreatFox about an exact indicator.
+            </p>
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {EXAMPLES.map((ex) => (
+                <Chip key={ex} onClick={() => setTerm(ex)}>
+                  {ex}
+                </Chip>
+              ))}
+            </div>
+          </div>
+        )}
+
         {showLocal && (
           <div className="mt-3 border-t border-line pt-3">
             {localEmpty ? (
-              <p className="font-mono text-[11px] text-ink-3">
+              <p className="text-secondary text-ink-low">
                 Nothing in the current range matches. Press enter to search all
                 of ThreatFox.
               </p>
@@ -160,19 +291,18 @@ export function LookupModal({ open, onClose }) {
                     <SectionLabel>Families in range</SectionLabel>
                     <div className="flex flex-wrap gap-1.5">
                       {local.families.map(([name, count]) => (
-                        <Link
+                        <Chip
                           key={name}
                           to={`/family/${encodeURIComponent(name)}`}
                           onClick={close}
                           onMouseEnter={() => prefetchFamily(name)}
-                          className="flex items-center gap-1.5 rounded-lg border border-line-2 bg-surface-2 px-2.5 py-1.5 text-[11.5px] font-semibold text-ink hover:border-accent hover:text-accent-soft"
                         >
-                          <Shield size={11} className="text-ink-3" />
+                          <Shield size={11} className="text-ink-low" />
                           {name}
-                          <b className="font-mono text-[10px] text-accent-soft tabular-nums">
+                          <b className="font-mono text-meta text-accent-soft tabular-nums">
                             {count}
                           </b>
-                        </Link>
+                        </Chip>
                       ))}
                     </div>
                   </>
@@ -183,16 +313,17 @@ export function LookupModal({ open, onClose }) {
                     <SectionLabel>Tags in range</SectionLabel>
                     <div className="flex flex-wrap gap-1.5">
                       {local.tags.map(([tag, count]) => (
-                        <Link
+                        <Chip
                           key={tag}
                           to={`/tag/${encodeURIComponent(tag)}`}
                           onClick={close}
-                          className="flex items-center gap-1.5 rounded-md border border-t-domain/25 bg-t-domain/10 px-2.5 py-1 font-mono text-[10px] text-t-domain hover:border-accent/60"
                         >
-                          <Tag size={10} />
+                          <Tag size={10} className="text-ink-low" />
                           {tag}
-                          <b className="text-ink-2 tabular-nums">{count}</b>
-                        </Link>
+                          <b className="font-mono text-meta text-ink-mid tabular-nums">
+                            {count}
+                          </b>
+                        </Chip>
                       ))}
                     </div>
                   </>
@@ -207,11 +338,12 @@ export function LookupModal({ open, onClose }) {
                       }`}
                     >
                       <div>
-                        {local.iocs.map((ioc) => (
-                          <IOCCard
+                        {local.iocs.map((ioc, i) => (
+                          <LookupRow
                             key={ioc.id}
                             ioc={ioc}
                             selected={selected?.id === ioc.id}
+                            highlighted={highlighted === i}
                             onSelect={() => setSelected(ioc)}
                           />
                         ))}
@@ -263,11 +395,12 @@ export function LookupModal({ open, onClose }) {
               >
                 <div>
                   <SectionLabel>ThreatFox records</SectionLabel>
-                  {result.data.map((ioc) => (
-                    <IOCCard
+                  {result.data.map((ioc, i) => (
+                    <LookupRow
                       key={ioc.id}
                       ioc={ioc}
                       selected={selected?.id === ioc.id}
+                      highlighted={highlighted === i}
                       onSelect={() => setSelected(ioc)}
                     />
                   ))}

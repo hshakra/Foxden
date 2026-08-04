@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Tag } from "lucide-react";
 import useTag from "../hooks/useTag";
 import { isNoResult } from "../lib/api";
 import { TopBar } from "../components/TopBar";
@@ -24,7 +23,7 @@ export default function TagExplorer() {
         subtitle="Campaign tag"
         crumbs={[{ label: "Tags", to: "/tags" }, { label: name }]}
       />
-      <div className="reveal flex flex-col gap-6 p-5">
+      <div className="reveal flex flex-col gap-8 p-6">
         {tag.isPending ? (
           <SkeletonRows rows={8} />
         ) : tag.isError && isNoResult(tag.error) ? (
@@ -42,9 +41,7 @@ export default function TagExplorer() {
         ) : (
           <>
             <DetailHeader
-              icon={Tag}
-              title={`#${name}`}
-              kind="campaign tag"
+              kind="tag"
               iocs={iocs}
               watch={{ kind: "tag", name }}
             />

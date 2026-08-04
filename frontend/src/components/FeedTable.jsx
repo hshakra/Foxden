@@ -91,6 +91,7 @@ export function FeedTable({
   title = "Live IOC feed",
   cluster = true,
   preview = 0,
+  showFamily = true,
 }) {
   const [minConf, setMinConf] = useState(0);
   const [familySearch, setFamilySearch] = useState("");
@@ -353,11 +354,15 @@ export function FeedTable({
           <div
             role="table"
             aria-label={title}
-            className="grid grid-cols-[72px_minmax(0,1fr)_130px_120px_42px_20px] gap-2.5 border-b border-line px-2 pb-2 text-secondary font-medium text-ink-low"
+            className={`grid gap-2.5 border-b border-line px-2 pb-2 text-secondary font-medium text-ink-low ${
+              showFamily
+                ? "grid-cols-[72px_minmax(0,1fr)_130px_120px_42px_20px]"
+                : "grid-cols-[72px_minmax(0,1fr)_120px_42px_20px]"
+            }`}
           >
             <span>Type</span>
             <span>Indicator</span>
-            <span>Family</span>
+            {showFamily && <span>Family</span>}
             <span>Confidence</span>
             <span>Seen</span>
             <span />
@@ -417,6 +422,7 @@ export function FeedTable({
                               ioc={item.ioc}
                               selected={selectedId === item.ioc.id}
                               onSelect={() => onSelect?.(item.ioc)}
+                              showFamily={showFamily}
                               onFamilyClick={
                                 onFamilyFilterChange
                                   ? () =>

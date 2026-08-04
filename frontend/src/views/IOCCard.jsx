@@ -57,7 +57,8 @@ export function ConfidenceCell({ level }) {
 
 // one ioc as a feed row on the shared table spec
 // type badge, mono value with copy, family, confidence, time ago, chevron
-export function IOCCard({ ioc, selected, onSelect, onFamilyClick }) {
+// the family cell drops out on pages that are already about one family
+export function IOCCard({ ioc, selected, onSelect, onFamilyClick, showFamily = true }) {
   const [copied, setCopied] = useState(false);
   const isHash = HASH_TYPES.has(ioc.ioc_type);
 
@@ -74,7 +75,11 @@ export function IOCCard({ ioc, selected, onSelect, onFamilyClick }) {
       tabIndex={0}
       onClick={onSelect}
       onKeyDown={(e) => e.key === "Enter" && onSelect?.()}
-      className={`group grid h-10 cursor-pointer grid-cols-[72px_minmax(0,1fr)_130px_120px_42px_20px] items-center gap-2.5 border-b border-line px-2 text-body transition-colors duration-150 ${
+      className={`group grid h-10 cursor-pointer items-center gap-2.5 border-b border-line px-2 text-body transition-colors duration-150 ${
+        showFamily
+          ? "grid-cols-[72px_minmax(0,1fr)_130px_120px_42px_20px]"
+          : "grid-cols-[72px_minmax(0,1fr)_120px_42px_20px]"
+      } ${
         selected
           ? "bg-lifted shadow-[inset_2px_0_0_var(--color-accent)]"
           : "hover:bg-raised"
@@ -105,29 +110,30 @@ export function IOCCard({ ioc, selected, onSelect, onFamilyClick }) {
         </button>
       </span>
 
-      {onFamilyClick ? (
-        // filters the feed in place, the profile link lives in the drawer
-        <button
-          type="button"
-          title={`Filter feed to ${ioc.malware_printable}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onFamilyClick();
-          }}
-          className="truncate text-left font-medium text-accent-soft hover:underline"
-        >
-          {ioc.malware_printable}
-        </button>
-      ) : (
-        <Link
-          to={`/family/${encodeURIComponent(ioc.malware_printable)}`}
-          onClick={(e) => e.stopPropagation()}
-          title={ioc.malware_printable}
-          className="truncate font-medium text-accent-soft hover:underline"
-        >
-          {ioc.malware_printable}
-        </Link>
-      )}
+      {showFamily &&
+        (onFamilyClick ? (
+          // filters the feed in place, the profile link lives in the drawer
+          <button
+            type="button"
+            title={`Filter feed to ${ioc.malware_printable}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onFamilyClick();
+            }}
+            className="truncate text-left font-medium text-accent-soft hover:underline"
+          >
+            {ioc.malware_printable}
+          </button>
+        ) : (
+          <Link
+            to={`/family/${encodeURIComponent(ioc.malware_printable)}`}
+            onClick={(e) => e.stopPropagation()}
+            title={ioc.malware_printable}
+            className="truncate font-medium text-accent-soft hover:underline"
+          >
+            {ioc.malware_printable}
+          </Link>
+        ))}
 
       <ConfidenceCell level={ioc.confidence_level} />
 

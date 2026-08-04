@@ -5,6 +5,8 @@ import { TypeBadge } from "../views/IOCCard";
 import { confidenceInfo } from "../lib/confidence";
 import { CONF_COLORS, THREAT_LABELS } from "../lib/colors";
 import { timeAgo } from "../lib/time";
+import { midEllipsis } from "../lib/format";
+import { Chip } from "./ui/Chip";
 
 // everything about one ioc, shown beside the feed with no navigation
 // verdict first, then only the evidence rows that actually have data,
@@ -12,11 +14,9 @@ import { timeAgo } from "../lib/time";
 
 function Row({ k, children }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-line py-1.5 text-[11px] last:border-0">
-      <span className="text-[11px] font-medium text-ink-3">
-        {k}
-      </span>
-      <span className="min-w-0 text-right font-mono text-[10px] text-ink">
+    <div className="flex items-center justify-between gap-3 border-b border-line py-2 text-secondary last:border-0">
+      <span className="font-medium text-ink-low">{k}</span>
+      <span className="min-w-0 text-right font-mono text-meta text-ink">
         {children}
       </span>
     </div>
@@ -61,34 +61,42 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
   return (
     <aside
       aria-label="IOC details"
-      className="relative flex h-fit flex-col rounded-xl border border-line-2 bg-surface-3 p-4"
+      className="relative flex h-fit flex-col rounded-lg border border-line-strong bg-overlay p-4 shadow-xl"
     >
       <div className="mb-2 flex items-center gap-2">
         <TypeBadge type={ioc.ioc_type} />
-        <span className="text-[11px] font-medium text-ink-3">
+        <span className="text-secondary font-medium text-ink-low">
           Details
         </span>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close details"
-          className="ml-auto text-ink-3 hover:text-ink"
+          className="ml-auto text-ink-low transition-colors duration-150 hover:text-ink"
         >
           <X size={14} />
         </button>
       </div>
 
-      <div className="mb-2 flex items-start gap-2 rounded-lg border border-line bg-surface-0 p-2.5">
-        <code className="min-w-0 flex-1 break-all font-mono text-[10.5px] leading-relaxed">
-          {ioc.ioc}
+      {/* the copy button keeps its own column so it never squeezes the value */}
+      <div className="mb-2 flex items-start gap-2.5 rounded-lg border border-line bg-bg p-2.5">
+        <code
+          className="min-w-0 flex-1 break-all font-mono text-secondary leading-relaxed"
+          title={ioc.ioc}
+        >
+          {midEllipsis(ioc.ioc, 56)}
         </code>
         <button
           type="button"
           onClick={copyValue}
           aria-label="Copy IOC value"
-          className="shrink-0 text-ink-3 hover:text-ink"
+          className="grid h-6 w-6 shrink-0 place-content-center rounded-md border border-line text-ink-low transition-colors duration-150 hover:border-line-strong hover:text-ink"
         >
-          {copied ? <Check size={13} className="text-good" /> : <Copy size={13} />}
+          {copied ? (
+            <Check size={13} className="text-accent-soft" />
+          ) : (
+            <Copy size={13} />
+          )}
         </button>
       </div>
 
@@ -96,19 +104,19 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
       <div
         className="mb-3 flex items-center gap-2.5 rounded-lg px-2.5 py-2"
         style={{
-          background: `color-mix(in oklab, ${confColor} 12%, var(--color-surface-2))`,
+          background: `color-mix(in oklab, ${confColor} 12%, var(--color-lifted))`,
         }}
       >
         <span
-          className="rounded-md px-2 py-0.5 font-mono text-[10px] font-bold"
-          style={{ background: confColor, color: "#10131a" }}
+          className="rounded-md px-2 py-0.5 font-mono text-meta font-medium"
+          style={{ background: confColor, color: "var(--color-bg)" }}
         >
           {conf.label}
         </span>
-        <span className="font-mono text-[10.5px] text-ink tabular-nums">
+        <span className="font-mono text-meta text-ink tabular-nums">
           Confidence {conf.value}
         </span>
-        <span className="ml-auto font-mono text-[10px] text-ink-2">
+        <span className="ml-auto text-meta text-ink-mid">
           {THREAT_LABELS[ioc.threat_type] ?? ioc.threat_type}
         </span>
       </div>
@@ -124,7 +132,8 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
       </Row>
       {ioc.first_seen && (
         <Row k="First seen">
-          {ioc.first_seen.replace(" UTC", "")} · {timeAgo(ioc.first_seen)} ago
+          {ioc.first_seen.replace(" UTC", "")} UTC, {timeAgo(ioc.first_seen)}{" "}
+          ago
         </Row>
       )}
       {ioc.reporter && <Row k="Reporter">{ioc.reporter}</Row>}
@@ -141,40 +150,37 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
         </Row>
       )}
       {ioc.tags?.length > 0 && (
-        <div className="border-b border-line py-1.5">
-          <span className="text-[11px] font-medium text-ink-3">
-            Tags
-          </span>
+        <div className="border-b border-line py-2">
+          <span className="text-secondary font-medium text-ink-low">Tags</span>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {ioc.tags.map((t) => (
-              <Link
+              <Chip
                 key={t}
                 to={`/tag/${encodeURIComponent(t)}`}
                 onClick={onNavigate}
-                className="rounded-md border border-t-domain/25 bg-t-domain/10 px-2 py-0.5 font-mono text-[9px] text-t-domain hover:border-accent/60"
               >
                 {t}
-              </Link>
+              </Chip>
             ))}
           </div>
         </div>
       )}
 
       {related.length > 0 && (
-        <div className="border-b border-line py-1.5">
-          <span className="text-[11px] font-medium text-ink-3">
+        <div className="border-b border-line py-2">
+          <span className="text-secondary font-medium text-ink-low">
             More from {ioc.malware_printable}
           </span>
           <div className="mt-1.5 flex flex-col gap-1">
             {related.map((other) => (
               <div
                 key={other.id}
-                className="flex items-center gap-2 font-mono text-[10px]"
+                className="flex items-center gap-2 font-mono text-meta"
               >
-                <span className="truncate text-ink-2" title={other.ioc}>
+                <span className="truncate text-ink-mid" title={other.ioc}>
                   {other.ioc}
                 </span>
-                <span className="ml-auto shrink-0 text-[9px] text-ink-3 tabular-nums">
+                <span className="ml-auto shrink-0 text-ink-low tabular-nums">
                   {timeAgo(other.first_seen)}
                 </span>
               </div>
@@ -188,7 +194,7 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
           <button
             type="button"
             onClick={() => onFilterFamily(ioc.malware_printable)}
-            className="rounded-lg bg-accent px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-accent/85"
+            className="rounded-md bg-accent px-2.5 py-1.5 text-secondary font-medium text-white transition-colors duration-150 hover:bg-accent/85"
           >
             Filter feed to family
           </button>
@@ -197,7 +203,7 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
           href={vtUrl}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-1 rounded-lg border border-line-2 bg-surface-2 px-2.5 py-1.5 text-[11px] font-semibold hover:border-accent hover:text-accent-soft"
+          className="flex items-center gap-1 rounded-md border border-line bg-lifted px-2.5 py-1.5 text-secondary font-medium text-ink-mid transition-colors duration-150 hover:border-line-strong hover:text-ink"
         >
           <ExternalLink size={11} /> VirusTotal
         </a>
@@ -206,7 +212,7 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
             href={bazaarUrl}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1 rounded-lg border border-line-2 bg-surface-2 px-2.5 py-1.5 text-[11px] font-semibold hover:border-accent hover:text-accent-soft"
+            className="flex items-center gap-1 rounded-md border border-line bg-lifted px-2.5 py-1.5 text-secondary font-medium text-ink-mid transition-colors duration-150 hover:border-line-strong hover:text-ink"
           >
             <ExternalLink size={11} /> MalwareBazaar
           </a>
@@ -215,7 +221,7 @@ export function IOCDrawer({ ioc, onClose, onFilterFamily, onNavigate, pool }) {
           href={tfUrl}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-1 rounded-lg border border-line-2 bg-surface-2 px-2.5 py-1.5 text-[11px] font-semibold hover:border-accent hover:text-accent-soft"
+          className="flex items-center gap-1 rounded-md border border-line bg-lifted px-2.5 py-1.5 text-secondary font-medium text-ink-mid transition-colors duration-150 hover:border-line-strong hover:text-ink"
         >
           <ExternalLink size={11} /> ThreatFox
         </a>

@@ -5,25 +5,12 @@ import { confidenceInfo } from "../lib/confidence";
 import { parseThreatFoxDate } from "../lib/time";
 import { CONF_COLORS } from "../lib/colors";
 import { WatchButton } from "./WatchButton";
+import { Group } from "./ui/Group";
+import { StatTile } from "./ui/StatTile";
+import { sparkRange } from "../lib/chartLabels";
 
-function Stat({ label, value, valueColor }) {
-  return (
-    <div>
-      <p className="text-[11px] font-medium text-ink-3">
-        {label}
-      </p>
-      <p
-        className="mt-0.5 text-lg font-bold tracking-tight tabular-nums"
-        style={valueColor ? { color: valueColor } : undefined}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
-
-// header for the family and tag pages, identity plus stats plus a sparkline
-export function DetailHeader({ icon: Icon, title, kind, iocs, watch }) {
+// stat band for the family and tag pages, the page title lives in the top bar
+export function DetailHeader({ kind, iocs, watch }) {
   const kpis = useMemo(() => computeKpis(iocs), [iocs]);
   const spark = useMemo(() => buildDailyChart(iocs, 14), [iocs]);
   const conf = confidenceInfo(kpis.avgConfidence);
@@ -33,50 +20,58 @@ export function DetailHeader({ icon: Icon, title, kind, iocs, watch }) {
     .filter(Boolean)
     .sort((a, b) => a - b);
   const firstSeen = seen[0];
+  const recentTotal = spark.reduce((sum, d) => sum + d.count, 0);
 
   return (
-    <div className="rounded-xl border border-line bg-surface-1 p-4">
-      <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
-        <div className="flex items-center gap-3">
-          <div className="grid h-11 w-11 place-content-center rounded-xl border border-line-2 bg-surface-2 text-accent-soft">
-            <Icon size={20} />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold leading-tight">{title}</h2>
-            <p className="font-mono text-[10px] text-ink-3">{kind}</p>
-          </div>
-        </div>
-
-        <Stat label="IOCs" value={kpis.total.toLocaleString()} />
-        <Stat
-          label="Avg confidence"
-          value={`${kpis.avgConfidence} ${conf.label}`}
-          valueColor={
-            conf.tone === "quiet" ? undefined : CONF_COLORS[conf.tone]
+    <Group
+      title="At a glance"
+      description={`What this ${kind} looks like right now`}
+      actions={watch && <WatchButton kind={watch.kind} name={watch.name} />}
+    >
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatTile
+          label="IOCs"
+          value={kpis.total.toLocaleString()}
+          comparison="in the loaded records"
+        />
+        <StatTile
+          label="Average confidence"
+          value={kpis.avgConfidence}
+          comparison={
+            <span>
+              <span
+                style={{
+                  color:
+                    conf.tone === "quiet" ? undefined : CONF_COLORS[conf.tone],
+                }}
+              >
+                {conf.label}
+              </span>
+              {" on a 0 to 100 scale"}
+            </span>
           }
         />
-        <Stat
+        <StatTile
           label="First seen"
           value={
-            firstSeen
-              ? firstSeen.toLocaleDateString("en-US", {
+            firstSeen ? (
+              <span className="block truncate font-sans">
+                {firstSeen.toLocaleDateString("en-US", {
                   month: "short",
                   year: "numeric",
-                })
-              : "n/a"
+                })}
+              </span>
+            ) : undefined
           }
+          comparison="oldest loaded record"
         />
-
-        <div className="ml-auto flex items-center gap-5">
-          {watch && <WatchButton kind={watch.kind} name={watch.name} />}
-          <div className="min-w-[200px]">
-            <p className="mb-1 text-[11px] font-medium text-ink-3">
-              14-day activity
-            </p>
-            <Sparkline points={spark} showLabels />
-          </div>
-        </div>
+        <StatTile
+          label="14-day activity"
+          value={recentTotal.toLocaleString()}
+          comparison={sparkRange(spark)}
+          spark={<Sparkline points={spark} showLabels />}
+        />
       </div>
-    </div>
+    </Group>
   );
 }

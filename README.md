@@ -3,6 +3,10 @@
 A live threat intelligence dashboard built on the [abuse.ch ThreatFox](https://threatfox.abuse.ch/) feed.
 It shows what is attacking, from where, right now.
 
+Live at [tryfoxden.vercel.app](https://tryfoxden.vercel.app). It runs on a free tier, so an occasional
+page pauses while a fresh server spins up and fetches from the feed. That is the hosting, not the app,
+run locally and everything is instant.
+
 ![Foxden overview](docs/screenshots/overview.png)
 
 ## What it does

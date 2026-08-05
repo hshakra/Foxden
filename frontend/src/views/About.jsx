@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, ExternalLink, MousePointerClick } from "lucide-react";
 import useRecentIOCs from "../hooks/useRecentIOCs";
 import { computeKpis } from "../lib/processor";
 import { StatTile } from "../components/ui/StatTile";
@@ -118,6 +118,16 @@ const FACTS = [
   ["No accounts", "Your watchlist lives in your own browser."],
 ];
 
+// a short imperative hint inside each interactive widget, most visitors
+// never hover so the invitation has to be visible at rest
+function TryHint({ children }) {
+  return (
+    <p className="mb-3 flex items-center gap-1.5 font-mono text-meta text-accent-soft">
+      <MousePointerClick size={12} aria-hidden="true" /> {children}
+    </p>
+  );
+}
+
 // tiny wireframes for the page map, enough to hint at each layout
 function Sketch({ kind }) {
   if (kind === "tiles")
@@ -177,11 +187,13 @@ export default function About() {
   const iocs = recent.data?.current;
   const kpis = iocs ? computeKpis(iocs) : null;
 
+  // chips at rest so the parts read as controls before any hover,
+  // selection recolors the chip border to accent
   const partClass = (k) =>
-    `rounded-md px-1.5 py-0.5 transition-colors duration-150 ${
+    `rounded-md border px-1.5 py-0.5 transition-colors duration-150 ${
       part === k
-        ? "bg-lifted shadow-[inset_0_0_0_1px_var(--color-accent)]"
-        : "hover:bg-lifted/60"
+        ? "border-accent bg-lifted"
+        : "border-line-strong bg-lifted/40 hover:bg-lifted"
     }`;
 
   return (
@@ -243,9 +255,10 @@ export default function About() {
 
       <Group
         title="Anatomy of one record"
-        description="Everything here is built from rows like this, click each part to see what it is for"
+        description="Everything here is built from rows like this"
       >
         <div className="rounded-lg border border-line bg-raised p-4">
+          <TryHint>Click each part of this record</TryHint>
           <div className="flex flex-wrap items-center gap-3 text-body">
             {/* the badge already has a border, so selection recolors it
                 instead of drawing a second ring around it */}
@@ -300,8 +313,9 @@ export default function About() {
 
       <Group
         title="How the data gets to you"
-        description="Four stops from a researcher's report to your screen, hover each one"
+        description="Four stops from a researcher's report to your screen"
       >
+        <TryHint>Click each stop</TryHint>
         <div className="flex flex-col gap-2 sm:flex-row">
           {FLOW.map((f, i) => (
             <button
@@ -312,7 +326,7 @@ export default function About() {
               onClick={() => setNode(i)}
               className={`flex-1 rounded-lg border p-3 text-left transition-colors duration-150 ${
                 node === i
-                  ? "border-accent/60 bg-lifted"
+                  ? "border-accent bg-lifted"
                   : "border-line bg-raised hover:bg-lifted/60"
               }`}
             >
@@ -325,7 +339,7 @@ export default function About() {
             </button>
           ))}
         </div>
-        <p className="mt-3 max-w-[74ch] text-secondary leading-relaxed text-ink-mid">
+        <p className="mt-3 max-w-[74ch] border-l-2 border-accent pl-3 text-secondary leading-relaxed text-ink-mid">
           {FLOW[node].why}
         </p>
       </Group>
@@ -350,7 +364,7 @@ export default function About() {
                 {p.name}
                 <ArrowRight
                   size={12}
-                  className="text-ink-low transition-colors duration-150 group-hover:text-accent-soft"
+                  className="text-accent-soft transition-colors duration-150 group-hover:text-accent"
                 />
               </p>
               <p className="mt-0.5 text-secondary text-ink-mid">{p.does}</p>

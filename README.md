@@ -55,9 +55,11 @@ The Vite dev server proxies /api to the backend, so there is nothing else to con
 
 ## Deploy
 
-Backend on Hugging Face Spaces: create a Docker space and push the backend folder to it, backend/Dockerfile and backend/README.md carry the config. Set THREATFOX_API_KEY and ALLOWED_ORIGINS (your frontend URL) in the space settings. Render works too, render.yaml is a ready blueprint.
+Both halves run on free tiers with no credit card.
 
-Frontend on Vercel: import the frontend folder and set VITE_API_BASE_URL to the deployed API URL. vercel.json already handles routing for the single page app and ships the security headers.
+Backend on Render: create a web service from the repo with the root directory set to backend, build with `pip install -r requirements.txt`, start with `uvicorn main:app --host 0.0.0.0 --port $PORT`. Set THREATFOX_API_KEY and ALLOWED_ORIGINS (your frontend URL) in the environment. The free instance sleeps after 15 minutes idle and wakes on the next request. A generic Dockerfile is included for container hosts.
+
+Frontend on Cloudflare Pages: import the repo, set the root directory to frontend, build with `npm run build`, output directory dist. Set VITE_API_BASE_URL to the deployed API URL. The `_headers` and `_redirects` files in frontend/public ship the security headers and single page routing. Vercel works too, vercel.json carries the same config.
 
 ## Security notes
 

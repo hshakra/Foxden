@@ -1,4 +1,4 @@
-# container for hugging face spaces, the app must listen on 7860
+# generic container, most hosts inject PORT so the command respects it
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -8,5 +8,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY main.py .
 
-EXPOSE 7860
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860", "--proxy-headers"]
+EXPOSE 8000
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers"]

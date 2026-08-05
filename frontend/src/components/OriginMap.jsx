@@ -36,8 +36,8 @@ const COUNTRY_PATHS = countries.map((c) => ({
 
 const MODES = ["Volume", "Confidence"];
 
-// the 110m shapes hold up to about this much magnification
-const MAX_ZOOM = 5;
+// past this the 110m shapes get visibly blocky
+const MAX_ZOOM = 8;
 
 // three discrete bands, softened so a map of mostly high confidence
 // stays quiet and the doubtful regions are what stands out
@@ -60,8 +60,9 @@ function clampView({ k, x, y }) {
   };
 }
 
-// one dot per occupied map cell, thousands of ips share city coordinates
-// so collapsing them keeps the svg light without losing any location
+// one marker per occupied map cell, thousands of ips share city
+// coordinates so collapsing them keeps the svg light, the count per
+// cell survives so busy locations can draw bigger than lone servers
 function dotsFor(rows) {
   const cells = new Map();
   for (const row of rows) {
@@ -69,7 +70,9 @@ function dotsFor(rows) {
     const p = projection([row.lon, row.lat]);
     if (!p) continue;
     const key = `${Math.round(p[0])},${Math.round(p[1])}`;
-    if (!cells.has(key)) cells.set(key, { key, x: p[0], y: p[1] });
+    const cell = cells.get(key);
+    if (cell) cell.n += 1;
+    else cells.set(key, { key, x: p[0], y: p[1], n: 1 });
   }
   return [...cells.values()];
 }
@@ -193,7 +196,6 @@ export function OriginMap({ iocs }) {
     if (!p) return;
     dragRef.current = { px: p.x, py: p.y, moved: false };
     wasDragRef.current = false;
-    svgRef.current.setPointerCapture(e.pointerId);
   }
 
   function onPointerMove(e) {
@@ -202,7 +204,12 @@ export function OriginMap({ iocs }) {
     if (!d) return;
     const p = toMap(e);
     if (!p) return;
-    if (Math.abs(p.x - d.px) + Math.abs(p.y - d.py) > 2) d.moved = true;
+    if (!d.moved && Math.abs(p.x - d.px) + Math.abs(p.y - d.py) > 2) {
+      d.moved = true;
+      // capture only once a real drag starts, capturing on every press
+      // retargets the click event away from the country paths
+      svgRef.current.setPointerCapture(e.pointerId);
+    }
     if (!d.moved) return;
     setView((v) =>
       clampView({ k: v.k, x: v.x + (p.x - d.px), y: v.y + (p.y - d.py) }),
@@ -212,7 +219,8 @@ export function OriginMap({ iocs }) {
   function onPointerUp(e) {
     wasDragRef.current = dragRef.current?.moved ?? false;
     dragRef.current = null;
-    svgRef.current?.releasePointerCapture(e.pointerId);
+    if (svgRef.current?.hasPointerCapture(e.pointerId))
+      svgRef.current.releasePointerCapture(e.pointerId);
   }
 
   // the tooltip trails the cursor, moved directly so the svg with its

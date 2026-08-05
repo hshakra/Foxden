@@ -125,6 +125,39 @@ input:focus-visible {
   outline: none;
 }
 
+/* origin map life: country colors crossfade between metrics, server
+   dots stagger in on load, and fresh arrivals ping like a radar,
+   the reduced motion block below stills all of it */
+.map-country {
+  transition:
+    fill 300ms,
+    fill-opacity 300ms;
+}
+@keyframes map-dot-in {
+  from {
+    opacity: 0;
+  }
+}
+.map-dot {
+  animation: map-dot-in 0.5s both;
+}
+@keyframes map-pulse {
+  from {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+.map-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: map-pulse 1.6s ease-out 3;
+  opacity: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

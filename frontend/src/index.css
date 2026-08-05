@@ -82,10 +82,10 @@ body {
 
 /* the one page level fade, no other entrances anywhere */
 .reveal {
-  animation: reveal 0.2s ease-out both;
+  animation: reveal 0.12s ease-out both;
 }
 @keyframes reveal {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(2px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -110,6 +110,27 @@ body {
    here is a real action so restore the pointer */
 button:not(:disabled) {
   cursor: pointer;
+}
+
+/* pressed feedback lands the instant the pointer goes down */
+button:not(:disabled):active {
+  filter: brightness(0.88);
+}
+
+/* text selection on palette instead of browser blue */
+::selection {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+/* inputs never sit under 16px on touch screens, smaller sizes make
+   ios zoom the whole page when a field gets focus */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 /* visible keyboard focus everywhere */

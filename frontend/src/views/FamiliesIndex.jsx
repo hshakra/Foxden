@@ -243,7 +243,7 @@ export default function FamiliesIndex() {
                             <span
                               key={p.type}
                               title={`${p.type} ${p.pct}%`}
-                              className="rounded-[1px] transition-[width] duration-500"
+                              className="rounded-[1px]"
                               style={{
                                 width: `${p.pct}%`,
                                 background: typeColor(p.type),

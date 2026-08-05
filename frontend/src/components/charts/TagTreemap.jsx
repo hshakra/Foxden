@@ -53,7 +53,7 @@ export function TagTreemap({ rows }) {
             type="button"
             onClick={() => navigate(`/tag/${encodeURIComponent(t.tag)}`)}
             title={`${t.tag}, ${t.count.toLocaleString()} IOCs`}
-            className="absolute overflow-hidden rounded-[4px] text-left transition-[left,top,width,height,background-color,filter] duration-300 hover:brightness-110"
+            className="absolute overflow-hidden rounded-[4px] text-left transition-[filter] duration-150 hover:brightness-110"
             style={{
               left: `${(t.x / WIDTH) * 100}%`,
               top: `${(t.y / HEIGHT) * 100}%`,

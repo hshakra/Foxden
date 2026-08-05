@@ -689,7 +689,7 @@ export function OriginMap({ iocs, previous = [] }) {
                 <span className="truncate">{c.name}</span>
                 <span className="ml-auto h-[5px] w-11 shrink-0 overflow-hidden rounded-sm bg-bg">
                   <span
-                    className="block h-full transition-[width] duration-500"
+                    className="block h-full"
                     style={{
                       width: `${Math.round((c.count / maxCount) * 100)}%`,
                       background:

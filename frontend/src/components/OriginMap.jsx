@@ -80,6 +80,8 @@ export function OriginMap({ iocs, previous = [] }) {
   const [mode, setMode] = useState("Volume");
   const [hovered, setHovered] = useState(null);
   const [view, setView] = useState({ k: 1, x: 0, y: 0 });
+  // button zooms glide, wheel and drag stay direct
+  const [glide, setGlide] = useState(false);
   const [pulses, setPulses] = useState([]);
   const [ticker, setTicker] = useState(null);
   const [replayT, setReplayT] = useState(null);
@@ -314,7 +316,8 @@ export function OriginMap({ iocs, previous = [] }) {
     return new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
   }
 
-  function zoomBy(factor, cx = MAP_W / 2, cy = MAP_H / 2) {
+  function zoomBy(factor, cx = MAP_W / 2, cy = MAP_H / 2, smooth = false) {
+    setGlide(smooth);
     setView((v) => {
       const k = Math.min(MAX_ZOOM, Math.max(1, v.k * factor));
       return clampView({
@@ -357,14 +360,20 @@ export function OriginMap({ iocs, previous = [] }) {
     if (!p) return;
     if (!d.moved && Math.abs(p.x - d.px) + Math.abs(p.y - d.py) > 2) {
       d.moved = true;
+      setGlide(false);
       // capture only once a real drag starts, capturing on every press
       // retargets the click event away from the country paths
       svgRef.current.setPointerCapture(e.pointerId);
     }
     if (!d.moved) return;
-    setView((v) =>
-      clampView({ k: v.k, x: v.x + (p.x - d.px), y: v.y + (p.y - d.py) }),
-    );
+    // freeze this step's delta and re-anchor before queueing the state
+    // update, the updater runs later and must not re-read the anchor,
+    // and anchoring per step keeps the map tracking the cursor exactly
+    const dx = p.x - d.px;
+    const dy = p.y - d.py;
+    d.px = p.x;
+    d.py = p.y;
+    setView((v) => clampView({ k: v.k, x: v.x + dx, y: v.y + dy }));
   }
 
   function onPointerUp(e) {
@@ -452,7 +461,13 @@ export function OriginMap({ iocs, previous = [] }) {
                 onPointerUp={onPointerUp}
                 onPointerCancel={onPointerUp}
               >
-                <g transform={`translate(${x} ${y}) scale(${k})`}>
+                <g
+                  style={{
+                    transform: `translate(${x}px, ${y}px) scale(${k})`,
+                    transformOrigin: "0 0",
+                    transition: glide ? "transform 300ms ease" : undefined,
+                  }}
+                >
                   {COUNTRY_PATHS.map((c) => {
                     const style = fillFor(c.a2);
                     const hasData = Boolean(c.a2 && byCountry[c.a2]);
@@ -534,7 +549,7 @@ export function OriginMap({ iocs, previous = [] }) {
                   type="button"
                   aria-label="Zoom in"
                   title="Zoom in, or pinch the map"
-                  onClick={() => zoomBy(1.5)}
+                  onClick={() => zoomBy(1.5, MAP_W / 2, MAP_H / 2, true)}
                   className="rounded-md border border-line bg-raised/90 p-1 text-ink-mid transition-colors duration-150 hover:bg-lifted hover:text-ink"
                 >
                   <Plus size={13} />
@@ -543,7 +558,7 @@ export function OriginMap({ iocs, previous = [] }) {
                   type="button"
                   aria-label="Zoom out"
                   title="Zoom out"
-                  onClick={() => zoomBy(1 / 1.5)}
+                  onClick={() => zoomBy(1 / 1.5, MAP_W / 2, MAP_H / 2, true)}
                   className="rounded-md border border-line bg-raised/90 p-1 text-ink-mid transition-colors duration-150 hover:bg-lifted hover:text-ink"
                 >
                   <Minus size={13} />
@@ -564,7 +579,10 @@ export function OriginMap({ iocs, previous = [] }) {
                     type="button"
                     aria-label="Reset view"
                     title="Back to the whole world"
-                    onClick={() => setView({ k: 1, x: 0, y: 0 })}
+                    onClick={() => {
+                      setGlide(true);
+                      setView({ k: 1, x: 0, y: 0 });
+                    }}
                     className="rounded-md border border-line bg-raised/90 p-1 text-ink-mid transition-colors duration-150 hover:bg-lifted hover:text-ink"
                   >
                     <RotateCcw size={13} />

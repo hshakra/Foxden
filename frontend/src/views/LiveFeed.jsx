@@ -6,6 +6,7 @@ import useFrozenFeed from "../hooks/useFrozenFeed";
 import useLastVisit from "../hooks/useLastVisit";
 import { Watchlist } from "../components/Watchlist";
 import { useRange } from "../lib/range";
+import useTitle from "../hooks/useTitle";
 import { TopBar } from "../components/TopBar";
 import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
 import { Situation } from "../components/Situation";
@@ -29,7 +30,8 @@ function scrollToFeed() {
 // shifting the page, and the newest ioc starts selected on desktop
 export default function LiveFeed() {
   const recent = useRecentIOCs();
-  const { days } = useRange();
+  const { days, setDays } = useRange();
+  useTitle("Overview");
   const frozen = useFrozenFeed(recent.data, `${days}:${recent.isPlaceholderData}`);
   const [selected, setSelected] = useState(null);
   const [familyFilter, setFamilyFilter] = useState(null);
@@ -91,6 +93,8 @@ export default function LiveFeed() {
           <EmptyState
             title="No IOCs in this range"
             hint="Try widening the time range."
+            actionLabel={days < 7 ? "Show 7 days" : undefined}
+            onAction={() => setDays(7)}
           />
         ) : (
           <>

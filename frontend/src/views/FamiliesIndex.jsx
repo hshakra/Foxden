@@ -15,6 +15,7 @@ import { confidenceInfo } from "../lib/confidence";
 import { CONF_COLORS, typeColor } from "../lib/colors";
 import { parseThreatFoxDate, timeAgo } from "../lib/time";
 import { useRange } from "../lib/range";
+import useTitle from "../hooks/useTitle";
 import { usePrefetchFamily } from "../hooks/useFamily";
 import { Sparkline } from "../components/charts/Sparkline";
 import { sparkRange } from "../lib/chartLabels";
@@ -40,7 +41,8 @@ const PAGE = 50;
 
 export default function FamiliesIndex() {
   const recent = useRecentIOCs();
-  const { days } = useRange();
+  const { days, setDays } = useRange();
+  useTitle("Families");
   const prefetchFamily = usePrefetchFamily();
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "count", dir: -1 });
@@ -122,6 +124,8 @@ export default function FamiliesIndex() {
           <EmptyState
             title="No families in this range"
             hint="Try widening the time range."
+            actionLabel={days < 7 ? "Show 7 days" : undefined}
+            onAction={() => setDays(7)}
           />
         ) : (
           <>
@@ -181,9 +185,11 @@ export default function FamiliesIndex() {
               <div className="mb-1.5">
                 <TypeLegend />
               </div>
-              <div className="overflow-x-auto">
+              {/* horizontal scroll only below desktop, an overflow context
+                  would break the sticky header against the main pane */}
+              <div className="max-lg:overflow-x-auto">
                 <div className="min-w-[680px]">
-                  <div className="grid grid-cols-[minmax(0,1fr)_64px_90px_96px_90px_80px] items-center gap-x-3 border-b border-line px-2 pb-2">
+                  <div className="sticky top-0 z-10 grid grid-cols-[minmax(0,1fr)_64px_90px_96px_90px_80px] items-center gap-x-3 border-b border-line bg-bg px-2 pb-2 pt-2">
                     {COLUMNS.map((c) => (
                       <button
                         key={c.key}

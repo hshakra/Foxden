@@ -6,6 +6,7 @@ import { computeKpis } from "../lib/processor";
 import { StatTile } from "../components/ui/StatTile";
 import { Group } from "../components/ui/Group";
 import { FoxLogo } from "../components/FoxLogo";
+import useTitle from "../hooks/useTitle";
 
 // the front door: first visits land here, the logo comes back here
 // it sells the tool and what you can do with it, on live numbers
@@ -175,6 +176,7 @@ function Sketch({ kind }) {
 }
 
 export default function About() {
+  useTitle("About");
   const recent = useRecentIOCs();
   const [part, setPart] = useState("value");
   const [node, setNode] = useState(0);

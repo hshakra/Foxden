@@ -14,15 +14,16 @@ run locally and everything is instant.
 Foxden takes the raw ThreatFox stream of IOCs (indicators of compromise, meaning malicious IPs, domains, URLs, and file hashes) and turns it into a dashboard you can actually work in. The overview gives you the situation, every value on screen pivots to the group it names, and details open in place.
 
 - Overview with headline numbers and deltas, an activity curve, and the type and threat breakdown for the selected range (24h, 3d, or 7d)
-- Origin map shaded by a thermal ramp, with a toggle between volume and confidence. Countries are clickable and land on the browse page prefiltered
+- Origin map that replays the window's arrivals on load, pings fresh servers as the live feed brings them in, and zooms and pans with cursor-anchored gestures. Shaded by a thermal ramp with a volume or confidence toggle, and every country clicks through to the browse page prefiltered
 - Browse page with a live facet rail: type, threat use, family, country, and port are all filters, the filters live in the URL so a view is shareable, and the filtered list exports to CSV
 - Families page ranking every malware operation, with a campaign timing heatmap showing when each one works and who is spiking against their own baseline
 - Tags page sizing the community's labels in a treemap and separating meaningful labels from noise
 - Family and tag pages you can share, with stats, activity, that entity's IOCs, and a link out to its ThreatFox page
 - Click any IOC anywhere and a detail panel opens next to the feed with copy, tags, siblings, and links out to VirusTotal and ThreatFox
-- Press / anywhere to look up any IP, domain, URL, or hash and get a verdict in a second
+- Press / or Ctrl K anywhere to look up any IP, domain, URL, or hash and get a verdict in a second
 - Watch families and tags you care about and the overview reports their activity when you return
 - Keyboard support in every feed: j and k to move, enter to open, esc to close
+- The small things are handled too: hover prefetching so pages open warm, sticky table headers, per page browser titles, stale data held on screen during refetches, pressed states on every control, and reduced motion respected throughout
 
 ![IOC browser](docs/screenshots/browse.png)
 

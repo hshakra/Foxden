@@ -9,6 +9,7 @@ import FamiliesIndex from "./views/FamiliesIndex";
 import IOCBrowse from "./views/IOCBrowse";
 import TagsIndex from "./views/TagsIndex";
 import About from "./views/About";
+import NotFound from "./views/NotFound";
 
 // the very first visit lands on the story, every visit after on the data
 function Home() {
@@ -32,6 +33,7 @@ function App() {
             <Route path="/family/:name" element={<FamilyProfile />} />
             <Route path="/tag/:name" element={<TagExplorer />} />
             <Route path="/about" element={<About />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </RangeProvider>

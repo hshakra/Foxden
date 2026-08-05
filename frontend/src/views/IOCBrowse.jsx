@@ -8,11 +8,15 @@ import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
 import { FacetRail } from "../components/FacetRail";
 import { FeedTable } from "../components/FeedTable";
 import { IOCDrawer } from "../components/IOCDrawer";
+import { useRange } from "../lib/range";
+import useTitle from "../hooks/useTitle";
 
 // the browse surface, facets on the left, the full feed in the middle,
 // details on the right. the overview keeps only a preview of this
 // filters live in the url so a filtered view can be shared or refreshed
 export default function IOCBrowse() {
+  useTitle("IOC browser");
+  const { days, setDays } = useRange();
   const recent = useRecentIOCs();
   const [selected, setSelected] = useState(null);
   const [params, setParams] = useSearchParams();
@@ -84,6 +88,8 @@ export default function IOCBrowse() {
           <EmptyState
             title="No IOCs in this range"
             hint="Try widening the time range."
+            actionLabel={days < 7 ? "Show 7 days" : undefined}
+            onAction={() => setDays(7)}
           />
         ) : (
           <div

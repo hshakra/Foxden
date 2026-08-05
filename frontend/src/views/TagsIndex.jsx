@@ -7,6 +7,9 @@ import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
 import { StatTile } from "../components/ui/StatTile";
 import { Group } from "../components/ui/Group";
 import { TagTreemap } from "../components/charts/TagTreemap";
+import { usePrefetchTag } from "../hooks/useTag";
+import { useRange } from "../lib/range";
+import useTitle from "../hooks/useTitle";
 
 // tags as a sortable table with the long tail collapsed
 // each row shows how wide the tag spreads across families
@@ -21,6 +24,9 @@ const COLUMNS = [
 const PAGE = 50;
 
 export default function TagsIndex() {
+  useTitle("Tags");
+  const { days, setDays } = useRange();
+  const prefetchTag = usePrefetchTag();
   const recent = useRecentIOCs();
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "count", dir: -1 });
@@ -111,6 +117,8 @@ export default function TagsIndex() {
           <EmptyState
             title="No tags in this range"
             hint="Try widening the time range."
+            actionLabel={days < 7 ? "Show 7 days" : undefined}
+            onAction={() => setDays(7)}
           />
         ) : (
           <>
@@ -161,9 +169,11 @@ export default function TagsIndex() {
                 </span>
               }
             >
-              <div className="overflow-x-auto">
+              {/* horizontal scroll only below desktop, an overflow context
+                  would break the sticky header against the main pane */}
+              <div className="max-lg:overflow-x-auto">
                 <div className="min-w-[560px]">
-                  <div className="grid grid-cols-[minmax(0,1fr)_64px_72px_minmax(0,1fr)] items-center gap-x-3 border-b border-line px-2 pb-2">
+                  <div className="sticky top-0 z-10 grid grid-cols-[minmax(0,1fr)_64px_72px_minmax(0,1fr)] items-center gap-x-3 border-b border-line bg-bg px-2 pb-2 pt-2">
                     {COLUMNS.map((c) => (
                       <button
                         key={c.key}
@@ -188,6 +198,7 @@ export default function TagsIndex() {
                     <Link
                       key={r.tag}
                       to={`/tag/${encodeURIComponent(r.tag)}`}
+                      onMouseEnter={() => prefetchTag(r.tag)}
                       className="grid h-10 grid-cols-[minmax(0,1fr)_64px_72px_minmax(0,1fr)] items-center gap-x-3 border-b border-line px-2 text-body transition-colors duration-150 hover:bg-raised"
                     >
                       <span

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import useTitle from "../hooks/useTitle";
 import useFamily from "../hooks/useFamily";
 import useRecentIOCs from "../hooks/useRecentIOCs";
 import { isNoResult } from "../lib/api";
@@ -12,6 +13,7 @@ import { SkeletonRows, ErrorState, EmptyState } from "../components/states";
 
 export default function FamilyProfile() {
   const { name } = useParams();
+  useTitle(name);
   const family = useFamily(name);
   const recent = useRecentIOCs();
   const [selected, setSelected] = useState(null);

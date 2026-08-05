@@ -19,7 +19,7 @@ Foxden takes the raw ThreatFox stream of IOCs (indicators of compromise, meaning
 - Families page ranking every malware operation, with a campaign timing heatmap showing when each one works and who is spiking against their own baseline
 - Tags page sizing the community's labels in a treemap and separating meaningful labels from noise
 - Family and tag pages you can share, with stats, activity, that entity's IOCs, and a link out to its ThreatFox page
-- Click any IOC anywhere and a detail panel opens next to the feed with copy, tags, siblings, and links out to VirusTotal and ThreatFox
+- Every feed arrives with the newest indicator already open in a detail panel beside it, with copy, tags, siblings, and links out to VirusTotal and ThreatFox. Click any other row to swap it in, close it and it stays closed
 - Press / or Ctrl K anywhere to look up any IP, domain, URL, or hash and get a verdict in a second
 - Watch families and tags you care about and the overview reports their activity when you return
 - Keyboard support in every feed: j and k to move, enter to open, esc to close

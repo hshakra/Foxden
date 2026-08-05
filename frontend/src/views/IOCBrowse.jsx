@@ -118,6 +118,7 @@ export default function IOCBrowse() {
               iocs={iocs}
               selectedId={selected?.id}
               onSelect={setSelected}
+              autoSelect
               familyFilter={familyFilter}
               onFamilyFilterChange={setFamilyFilter}
               typeFilter={typeFilter}

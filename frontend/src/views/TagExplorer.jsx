@@ -65,6 +65,7 @@ export default function TagExplorer() {
                 iocs={iocs}
                 selectedId={selected?.id}
                 onSelect={setSelected}
+                autoSelect
                 title="Tagged IOCs"
               />
               {selected && (

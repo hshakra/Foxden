@@ -109,6 +109,8 @@ export function FeedTable({
   cluster = true,
   preview = 0,
   showFamily = true,
+  // open the newest row on arrival so the detail panel is never empty
+  autoSelect = false,
   // the overview embeds a short feed, the browse page gets a tall one
   maxH = "max-h-[520px]",
 }) {
@@ -117,6 +119,8 @@ export function FeedTable({
   const [expanded, setExpanded] = useState(() => new Set());
   const [limit, setLimit] = useState(PAGE);
   const scrollRef = useRef(null);
+  const dismissed = useRef(false);
+  const prevSelectedId = useRef(selectedId);
 
   const stream = useMemo(() => sortRecentStream(iocs), [iocs]);
 
@@ -165,6 +169,18 @@ export function FeedTable({
   useEffect(() => {
     setLimit(PAGE);
   }, [typeFilter, threatFilter, minConf, familyFilter, countryFilter, portFilter]);
+
+  // start on the newest row that survives the filters, so the page arrives
+  // showing a real indicator instead of an empty half of the layout.
+  // closing the panel is a decision, once dismissed it stays closed and
+  // there is no room for the panel on narrow screens
+  useEffect(() => {
+    if (prevSelectedId.current && !selectedId) dismissed.current = true;
+    prevSelectedId.current = selectedId;
+    if (!autoSelect || selectedId || dismissed.current) return;
+    if (window.innerWidth < 1024) return;
+    if (filtered[0]) onSelect?.(filtered[0]);
+  }, [autoSelect, selectedId, filtered, onSelect]);
 
   const cap = preview || limit;
   const visible = useMemo(() => filtered.slice(0, cap), [filtered, cap]);

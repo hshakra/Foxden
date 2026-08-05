@@ -68,6 +68,7 @@ export default function FamilyProfile() {
                 iocs={iocs}
                 selectedId={selected?.id}
                 onSelect={setSelected}
+                autoSelect
                 title="IOCs"
                 cluster={false}
                 showFamily={false}

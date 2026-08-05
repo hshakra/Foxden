@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { ArrowRight, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import useRecentIOCs from "../hooks/useRecentIOCs";
@@ -37,31 +37,11 @@ export default function LiveFeed() {
   const [familyFilter, setFamilyFilter] = useState(null);
   const [typeFilter, setTypeFilter] = useState([]);
   const [threatFilter, setThreatFilter] = useState([]);
-  const dismissed = useRef(false);
 
   const current = frozen.data?.current;
   const iocs = useMemo(() => current ?? [], [current]);
   const previous = frozen.data?.previous ?? [];
   const sinceLastVisit = useLastVisit(iocs);
-
-  useEffect(() => {
-    if (
-      !selected &&
-      !dismissed.current &&
-      iocs.length > 0 &&
-      window.innerWidth >= 1024
-    ) {
-      const newest = [...iocs].sort((a, b) =>
-        b.first_seen.localeCompare(a.first_seen),
-      )[0];
-      setSelected(newest);
-    }
-  }, [iocs, selected]);
-
-  function handleSelect(ioc) {
-    if (ioc === null) dismissed.current = true;
-    setSelected(ioc);
-  }
 
   return (
     <>
@@ -153,7 +133,8 @@ export default function LiveFeed() {
                 <FeedTable
                   iocs={iocs}
                   selectedId={selected?.id}
-                  onSelect={handleSelect}
+                  onSelect={setSelected}
+                  autoSelect
                   familyFilter={familyFilter}
                   onFamilyFilterChange={setFamilyFilter}
                   typeFilter={typeFilter}
@@ -174,7 +155,7 @@ export default function LiveFeed() {
               {selected && (
                 <IOCDrawer
                   ioc={selected}
-                  onClose={() => handleSelect(null)}
+                  onClose={() => setSelected(null)}
                   onFamilyFilterChange={(family) => setFamilyFilter(family)}
                   pool={iocs}
                 />

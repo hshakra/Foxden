@@ -37,8 +37,8 @@ export function DetailHeader({ kind, iocs, rangeCount, watch }) {
   );
   const loadedLabel = `of the latest ${iocs.length.toLocaleString()} records`;
 
-  // malpedia knows families by their malpedia id, carried on every record
-  const malpediaId =
+  // threatfox has a page per family, keyed by the malware id on every record
+  const malwareId =
     kind === "family" && iocs[0]?.malware !== "unknown" ? iocs[0]?.malware : null;
 
   return (
@@ -47,14 +47,15 @@ export function DetailHeader({ kind, iocs, rangeCount, watch }) {
       description={`What this ${kind} looks like right now`}
       actions={
         <>
-          {malpediaId && (
+          {malwareId && (
             <a
-              href={`https://malpedia.caad.fkie.fraunhofer.de/details/${encodeURIComponent(malpediaId)}`}
+              href={`https://threatfox.abuse.ch/browse/malware/${encodeURIComponent(malwareId)}/`}
               target="_blank"
               rel="noreferrer"
+              title={`This family on ThreatFox, ${malwareId}`}
               className="flex items-center gap-1.5 rounded-md border border-line bg-lifted px-2.5 py-1.5 text-secondary font-medium text-ink-mid transition-colors duration-150 hover:border-line-strong hover:text-ink"
             >
-              <ExternalLink size={12} /> Malpedia
+              <ExternalLink size={12} /> ThreatFox
             </a>
           )}
           {watch && <WatchButton kind={watch.kind} name={watch.name} />}

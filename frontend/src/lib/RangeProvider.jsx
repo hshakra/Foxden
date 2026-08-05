@@ -3,7 +3,7 @@ import { RangeContext } from "./range";
 
 // global time range in days, shared by the top bar picker and every query
 export function RangeProvider({ children }) {
-  const [days, setDays] = useState(7);
+  const [days, setDays] = useState(3);
   return (
     <RangeContext.Provider value={{ days, setDays }}>
       {children}

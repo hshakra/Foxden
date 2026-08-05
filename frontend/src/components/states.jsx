@@ -11,8 +11,9 @@ export function Skeleton({ className = "" }) {
   );
 }
 
-// after a while a quiet line explains the wait, threatfox has slow days
-// the skeleton alone reads as frozen once a load drags past a few seconds
+// after a while a quiet line explains the wait, free hosting wakes servers
+// cold and threatfox has slow days, the skeleton alone reads as frozen
+// once a load drags past a few seconds
 function SlowNote({ delay = 3000 }) {
   const [show, setShow] = useState(false);
 
@@ -24,8 +25,8 @@ function SlowNote({ delay = 3000 }) {
   if (!show) return null;
   return (
     <p className="pt-4 text-center text-secondary text-ink-mid">
-      This is taking longer than usual. ThreatFox is answering slowly right
-      now, still trying.
+      This is taking longer than usual. The server is likely waking up from a
+      cold start on free hosting, still trying.
     </p>
   );
 }

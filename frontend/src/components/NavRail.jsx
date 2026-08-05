@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutGrid, List, Shield, Tag, Search, Info } from "lucide-react";
+import { LayoutGrid, List, Shield, Tag, Search } from "lucide-react";
 import { FoxLogo } from "./FoxLogo";
 import { useLookup } from "../lib/lookup";
 
@@ -51,9 +51,11 @@ export function NavRail() {
 
   return (
     <aside className="flex w-[200px] shrink-0 flex-col border-r border-line bg-raised px-3 py-4">
+      {/* the wordmark is the way back to the story */}
       <NavLink
-        to="/"
-        aria-label="Foxden home"
+        to="/about"
+        aria-label="About Foxden"
+        title="About Foxden"
         className="mb-6 flex items-center gap-2.5 px-2"
       >
         <FoxLogo size={22} />
@@ -90,10 +92,6 @@ export function NavRail() {
               /
             </kbd>
           </button>
-          <NavLink to="/about" className={rowClass(pathname === "/about")}>
-            <Info size={15} strokeWidth={1.5} />
-            About
-          </NavLink>
         </div>
       </nav>
 

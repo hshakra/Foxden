@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, ExternalLink, Check } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import useRecentIOCs from "../hooks/useRecentIOCs";
 import { computeKpis } from "../lib/processor";
 import { StatTile } from "../components/ui/StatTile";
@@ -8,48 +8,48 @@ import { Group } from "../components/ui/Group";
 import { FoxLogo } from "../components/FoxLogo";
 
 // the front door: first visits land here, the logo comes back here
-// part hero, part case study, everything on it is the real system
+// it sells the tool and what you can do with it, on live numbers
 
-// clicking a piece of the sample row reveals the decision behind it
+// clicking a piece of the sample row explains what that piece is for
 const ANATOMY = {
   type: {
-    label: "The type badge",
-    why: "Types are color coded with four reserved chart colors, and the three hash flavors collapse into one so lists stay scannable. The same four colors mean the same four things on every chart in the app.",
+    label: "The type",
+    why: "Indicators come in four shapes: server addresses, domains, URLs and file hashes. The shape tells you what to do with one. An address goes on a firewall blocklist, a domain into DNS filtering, a hash into an antivirus hunt.",
   },
   value: {
     label: "The indicator",
-    why: "Machine data is always Martian Mono: addresses, hashes, ports, timestamps and counts. Human words are always Schibsted Grotesk. Your eye learns the difference in about a minute, then never confuses data with chrome again.",
+    why: "The evidence itself, one click to copy. This is what you paste into your firewall, your log search, or the lookup here. If this address shows up in your network traffic, one of your machines is likely talking to an attacker.",
   },
   family: {
     label: "The family",
-    why: "Every entity on screen pivots to the group it names. This family name is a filter waiting to be clicked, not a label. The design rule behind it: no dead ends anywhere.",
+    why: "Indicators rarely travel alone. The family names the malware operation behind this one, and clicking it anywhere in the app shows the whole campaign: its other servers, its pace, its targets. One click takes you from a single address to the operation running it.",
   },
   confidence: {
     label: "The confidence",
-    why: "Reporter confidence, 0 to 100, always shown with its label. Three colors are reserved for it and used for nothing else, so amber in this app always means the same thing. Confidence is not severity, and Foxden invents no alert levels.",
+    why: "How sure the reporter is, from 0 to 100. Block on high confidence without second guessing, treat the rest as leads worth checking. Foxden shows it on every indicator so you never act on weak evidence by accident.",
   },
 };
 
 const FLOW = [
   {
     name: "ThreatFox",
-    role: "The feed",
-    why: "A free public feed of indicators of compromise run by abuse.ch, a Swiss nonprofit. Researchers worldwide report thousands of live attack indicators to it every day. Foxden also geolocates addresses through ip-api.com.",
+    role: "The source",
+    why: "Security researchers worldwide report live attack indicators to ThreatFox, a free public feed run by abuse.ch, a Swiss nonprofit. Thousands arrive every day. Foxden adds geolocation so every malicious server also has a place on the map.",
   },
   {
-    name: "FastAPI proxy",
+    name: "A small backend",
     role: "The gate",
-    why: "A deliberately thin backend. It keeps the API key off the browser, caches responses so the upstream is never hammered, rate limits per client, and compresses a 4 MB feed to about 200 kB. Nothing more.",
+    why: "A thin proxy keeps the feed key private, caches responses so pages load instantly, and rate limits abuse so the free upstream stays healthy. It does nothing else on purpose: the less it does, the less can break.",
   },
   {
-    name: "React client",
+    name: "Your browser",
     role: "The brain",
-    why: "The browser does the thinking: every ranking, trend, bucket and map fill is computed client side from one fetch. All date math is UTC end to end because the feed's timestamps are.",
+    why: "One fetch becomes everything you see. Rankings, trends, deltas and the map are all computed on your machine, which is why filtering and pivoting feel instant: there is no waiting on a server to answer.",
   },
   {
     name: "Six pages",
-    role: "The instrument",
-    why: "Each fact lives in exactly one home. A metric appears as a headline on its own page and at most one context line elsewhere, so you always know where to look for it.",
+    role: "The tool",
+    why: "Each page answers one kind of question, so you always know where to look: the situation on the overview, the raw feed in the browser, campaigns under families, labels under tags.",
   },
 ];
 
@@ -57,79 +57,57 @@ const PAGES = [
   {
     to: "/",
     name: "Overview",
-    owns: "The situation: totals, deltas, the map, what is surging",
+    does: "What is attacking right now: totals, trends, a world map of origins, and which campaigns are surging",
     sketch: ["tiles", "map", "rows"],
   },
   {
     to: "/iocs",
     name: "IOC browser",
-    owns: "The full feed with facets: type, family, country, port",
+    does: "Narrow thousands of indicators by type, family, country or port, then export your slice as CSV",
     sketch: ["rail", "rows"],
   },
   {
     to: "/families",
     name: "Families",
-    owns: "Every family ranked, with a campaign timing heatmap",
+    does: "Every malware operation ranked, with a timing heatmap showing when each one works",
     sketch: ["heat", "rows"],
   },
   {
     to: "/tags",
     name: "Tags",
-    owns: "The label landscape as a treemap, plus noise stats",
+    does: "The community's labels sized by use, and which are meaningful versus noise",
     sketch: ["tree", "rows"],
   },
   {
     to: "/family/Mirai",
     name: "Family profile",
-    owns: "One campaign in depth, with links out to Malpedia",
+    does: "One campaign in depth: its rhythm, its infrastructure, its latest indicators",
     sketch: ["tiles", "rows"],
   },
   {
     to: "/tag/ClickFix",
     name: "Tag explorer",
-    owns: "One tag, the families using it, the IOCs carrying it",
+    does: "One label in depth, and which malware operations are using it",
     sketch: ["tiles", "rows"],
   },
 ];
 
-const TOKEN_ROWS = [
+const MOMENTS = [
   {
-    title: "The neutral ladder",
-    note: "Over 90 percent of any screen. Elevation is lightness, shadows exist only under overlays.",
-    tokens: [
-      ["bg", "#10141a"],
-      ["raised", "#161b23"],
-      ["lifted", "#1c222c"],
-      ["overlay", "#232a35"],
-      ["line", "#2a303b"],
-      ["ink-low", "#6f7683"],
-      ["ink-mid", "#a2a9b4"],
-      ["ink", "#e8ebef"],
-    ],
+    title: "A strange IP in your logs",
+    how: "Press /, paste it, and know in a second whether it is a known attacker, which malware it belongs to, and how confident the report is.",
   },
   {
-    title: "One accent",
-    note: "Glaucous marks everything interactive and nothing decorative.",
-    tokens: [["accent", "#7180b9"]],
+    title: "First coffee of the shift",
+    how: "The overview shows what changed since you left: how volume moved, which campaigns surged overnight, and what arrived since your last visit.",
   },
   {
-    title: "The confidence contract",
-    note: "Reserved for certainty, never used for anything else.",
-    tokens: [
-      ["conf-high", "#5c9c7f"],
-      ["conf-med", "#ffb020"],
-      ["conf-low", "#ff5470"],
-    ],
+    title: "The firewall needs feeding",
+    how: "Filter the browser to what you defend against, by country, port or confidence, and export a clean CSV ready for a blocklist.",
   },
   {
-    title: "Chart types",
-    note: "Four colors, one per indicator type, identical on every chart.",
-    tokens: [
-      ["t-ip", "#6e9bd1"],
-      ["t-domain", "#9179c9"],
-      ["t-url", "#c9a86b"],
-      ["t-hash", "#56a8a0"],
-    ],
+    title: "A campaign worth watching",
+    how: "Hit watch on any family or tag. Every time you come back, the overview reports what your watchlist did while you were gone.",
   },
 ];
 
@@ -140,30 +118,7 @@ const FACTS = [
   ["No accounts", "Your watchlist lives in your own browser."],
 ];
 
-function Swatch({ name, hex, copied, onCopy }) {
-  return (
-    <button
-      type="button"
-      onClick={onCopy}
-      title={`Copy ${hex}`}
-      className="group flex items-center gap-1.5 rounded-md border border-line bg-lifted py-1 pl-1.5 pr-2 font-mono text-meta text-ink-mid transition-colors duration-150 hover:border-line-strong hover:text-ink"
-    >
-      <span
-        className="h-4 w-4 rounded-[4px] border border-line-strong"
-        style={{ background: hex }}
-      />
-      {copied ? (
-        <span className="flex items-center gap-1 text-conf-high">
-          <Check size={10} /> copied
-        </span>
-      ) : (
-        name
-      )}
-    </button>
-  );
-}
-
-// tiny wireframes for the page map, drawn from the same tokens
+// tiny wireframes for the page map, enough to hint at each layout
 function Sketch({ kind }) {
   if (kind === "tiles")
     return (
@@ -213,7 +168,6 @@ export default function About() {
   const recent = useRecentIOCs();
   const [part, setPart] = useState("value");
   const [node, setNode] = useState(0);
-  const [copied, setCopied] = useState(null);
 
   // seeing this page once is the welcome, later visits land on the data
   useEffect(() => {
@@ -222,12 +176,6 @@ export default function About() {
 
   const iocs = recent.data?.current;
   const kpis = iocs ? computeKpis(iocs) : null;
-
-  function copyToken(name, hex) {
-    navigator.clipboard?.writeText(hex);
-    setCopied(name);
-    setTimeout(() => setCopied((c) => (c === name ? null : c)), 1200);
-  }
 
   const partClass = (k) =>
     `rounded-md px-1.5 py-0.5 transition-colors duration-150 ${
@@ -247,11 +195,11 @@ export default function About() {
           A live map of what is attacking the internet right now
         </h1>
         <p className="mt-3 max-w-[58ch] text-body leading-relaxed text-ink-mid">
-          Researchers report thousands of live attack indicators to ThreatFox,
-          a public feed run by the nonprofit abuse.ch. Foxden turns that raw
-          stream into a calm, working dashboard for the people who need it:
-          analysts on shift, threat researchers, students, and anyone holding
-          one suspicious link.
+          Somewhere right now, a machine is quietly calling home to an
+          attacker. Researchers catch these calls and report them, thousands a
+          day, to a public feed. Foxden turns that feed into answers: what is
+          attacking, from where, aimed at what, and whether the thing in your
+          logs is part of it.
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <Link
@@ -276,14 +224,14 @@ export default function About() {
             comparison="in the live 7 day window"
           />
           <StatTile
-            label="Malware families"
+            label="Malware operations"
             value={kpis ? kpis.familyCount.toLocaleString() : "–"}
             comparison="active in range"
           />
           <StatTile
-            label="Community tags"
+            label="Community labels"
             value={kpis ? kpis.tagCount.toLocaleString() : "–"}
-            comparison="labels in range"
+            comparison="tags in range"
           />
           <StatTile
             label="Average confidence"
@@ -295,7 +243,7 @@ export default function About() {
 
       <Group
         title="Anatomy of one record"
-        description="Everything here is built from rows like this, click each part for the decision behind it"
+        description="Everything here is built from rows like this, click each part to see what it is for"
       >
         <div className="rounded-lg border border-line bg-raised p-4">
           <div className="flex flex-wrap items-center gap-3 text-body">
@@ -343,7 +291,7 @@ export default function About() {
       </Group>
 
       <Group
-        title="How the data gets here"
+        title="How the data gets to you"
         description="Four stops from a researcher's report to your screen, hover each one"
       >
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -375,8 +323,8 @@ export default function About() {
       </Group>
 
       <Group
-        title="Every fact has one home"
-        description="The six pages and what each one owns, click any card to visit the real thing"
+        title="What each page answers"
+        description="Click any card to open the real thing"
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {PAGES.map((p) => (
@@ -397,61 +345,32 @@ export default function About() {
                   className="text-ink-low transition-colors duration-150 group-hover:text-accent-soft"
                 />
               </p>
-              <p className="mt-0.5 text-secondary text-ink-mid">{p.owns}</p>
+              <p className="mt-0.5 text-secondary text-ink-mid">{p.does}</p>
             </Link>
           ))}
         </div>
         <p className="mt-3 text-secondary text-ink-low">
-          Two more live everywhere: a detail drawer for any indicator, and a
+          Two more are everywhere: a detail drawer for any indicator, and a
           lookup on the / key that answers is this thing malicious in a second.
         </p>
       </Group>
 
       <Group
-        title="The design system"
-        description="A calm instrument where only the data glows, click any token to copy it"
+        title="Built for real moments"
+        description="The situations this tool exists for"
       >
-        <div className="flex flex-col gap-4">
-          {TOKEN_ROWS.map((row) => (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {MOMENTS.map((m) => (
             <div
-              key={row.title}
-              className="grid gap-2 border-t border-line pt-3 first:border-t-0 first:pt-0 md:grid-cols-[190px_minmax(0,1fr)]"
+              key={m.title}
+              className="rounded-lg border border-line bg-raised p-4 shadow-[inset_2px_0_0_var(--color-accent)]"
             >
-              <div>
-                <p className="text-body font-medium">{row.title}</p>
-                <p className="mt-0.5 text-meta leading-snug text-ink-low">
-                  {row.note}
-                </p>
-              </div>
-              <div className="flex flex-wrap content-start gap-1.5">
-                {row.tokens.map(([name, hex]) => (
-                  <Swatch
-                    key={name}
-                    name={name}
-                    hex={hex}
-                    copied={copied === name}
-                    onCopy={() => copyToken(name, hex)}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-          <div className="grid gap-2 border-t border-line pt-3 md:grid-cols-[190px_minmax(0,1fr)]">
-            <div>
-              <p className="text-body font-medium">The thermal ramp</p>
-              <p className="mt-0.5 text-meta leading-snug text-ink-low">
-                Brighter means busier. Spent in exactly three places: the map,
-                the timing heatmap, the tag treemap.
+              <p className="text-body font-medium">{m.title}</p>
+              <p className="mt-1 text-secondary leading-relaxed text-ink-mid">
+                {m.how}
               </p>
             </div>
-            <span
-              className="h-5 self-center rounded-md"
-              style={{
-                background:
-                  "linear-gradient(90deg, #262c47, #4a5686, #7180b9, #93a3d6, #bfae8a)",
-              }}
-            />
-          </div>
+          ))}
         </div>
       </Group>
 
@@ -473,11 +392,12 @@ export default function About() {
 
       <Group title="Why it exists">
         <p className="max-w-[64ch] text-body leading-relaxed text-ink-mid">
-          I am Husam, and Foxden is my portfolio project. I wanted to build a
-          real product end to end on live public data: the pipeline, the API,
-          the design system and the deploy, with the polish of something
-          people rely on. The code, its history, and every decision above are
-          open on GitHub.
+          I am Husam, and Foxden is my portfolio project. Threat data is
+          public, but the tools around it are either enterprise products or
+          raw JSON. I wanted to close that gap properly: figure out who would
+          actually use this, design for their questions, and polish it until
+          it feels like a product people rely on. The code and every decision
+          are open on GitHub.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link

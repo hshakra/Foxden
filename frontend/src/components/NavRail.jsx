@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutGrid, List, Shield, Tag, Search } from "lucide-react";
+import { LayoutGrid, List, Shield, Tag, Search, Info } from "lucide-react";
 import { FoxLogo } from "./FoxLogo";
 import { useLookup } from "../lib/lookup";
 
@@ -95,7 +95,14 @@ export function NavRail() {
         </div>
       </nav>
 
-      <div className="mt-auto border-t border-line px-2.5 pt-3 text-meta leading-relaxed text-ink-low">
+      {/* pinned below the workflow, the way products park help and settings */}
+      <div className="mt-auto">
+        <NavLink to="/about" className={rowClass(pathname === "/about")}>
+          <Info size={15} strokeWidth={1.5} />
+          About Foxden
+        </NavLink>
+      </div>
+      <div className="mt-3 border-t border-line px-2.5 pt-3 text-meta leading-relaxed text-ink-low">
         <p className="flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-accent" />
           Live feed

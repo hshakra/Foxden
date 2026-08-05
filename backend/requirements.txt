@@ -1,4 +1,4 @@
-# runtime dependencies — dev tools (black, etc.) live in the venv only
+# runtime dependencies, dev tools like black live in the venv only
 fastapi==0.136.1
 httpx==0.28.1
 pydantic==2.13.4

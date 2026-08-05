@@ -55,7 +55,7 @@ The Vite dev server proxies /api to the backend, so there is nothing else to con
 
 ## Deploy
 
-Backend on Render: render.yaml is a ready blueprint with a health check. Set THREATFOX_API_KEY and ALLOWED_ORIGINS (your frontend URL) in the dashboard.
+Backend on Hugging Face Spaces: create a Docker space and push the backend folder to it, backend/Dockerfile and backend/README.md carry the config. Set THREATFOX_API_KEY and ALLOWED_ORIGINS (your frontend URL) in the space settings. Render works too, render.yaml is a ready blueprint.
 
 Frontend on Vercel: import the frontend folder and set VITE_API_BASE_URL to the deployed API URL. vercel.json already handles routing for the single page app and ships the security headers.
 

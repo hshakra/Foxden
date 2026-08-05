@@ -55,11 +55,13 @@ The Vite dev server proxies /api to the backend, so there is nothing else to con
 
 ## Deploy
 
-Both halves run on free tiers with no credit card.
+Both halves run free on Vercel's hobby plan, no credit card.
 
-Backend on Render: create a web service from the repo with the root directory set to backend, build with `pip install -r requirements.txt`, start with `uvicorn main:app --host 0.0.0.0 --port $PORT`. Set THREATFOX_API_KEY and ALLOWED_ORIGINS (your frontend URL) in the environment. The free instance sleeps after 15 minutes idle and wakes on the next request. A generic Dockerfile is included for container hosts.
+Backend: import the repo as a project with the root directory set to backend. Vercel detects the FastAPI app in main.py on its own. Set THREATFOX_API_KEY and ALLOWED_ORIGINS (your frontend URL) in the environment.
 
-Frontend on Cloudflare Pages: import the repo, set the root directory to frontend, build with `npm run build`, output directory dist. Set VITE_API_BASE_URL to the deployed API URL. The `_headers` and `_redirects` files in frontend/public ship the security headers and single page routing. Vercel works too, vercel.json carries the same config.
+Frontend: import the repo again as a second project with the root directory set to frontend. Set VITE_API_BASE_URL to the backend URL. vercel.json ships the security headers and single page routing. Cloudflare Pages works too, the `_headers` and `_redirects` files in frontend/public carry the same config.
+
+Render or any container host also runs the backend, the Dockerfile is generic and render.yaml documents the settings.
 
 ## Security notes
 

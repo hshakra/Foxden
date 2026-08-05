@@ -247,12 +247,20 @@ export default function About() {
       >
         <div className="rounded-lg border border-line bg-raised p-4">
           <div className="flex flex-wrap items-center gap-3 text-body">
+            {/* the badge already has a border, so selection recolors it
+                instead of drawing a second ring around it */}
             <button
               type="button"
               onClick={() => setPart("type")}
-              className={partClass("type")}
+              className="rounded-md"
             >
-              <span className="rounded-md border border-line-strong bg-t-ip/10 px-2 py-0.5 font-mono text-meta text-t-ip">
+              <span
+                className={`inline-block rounded-md border px-2 py-0.5 font-mono text-meta text-t-ip transition-colors duration-150 ${
+                  part === "type"
+                    ? "border-accent bg-lifted"
+                    : "border-line-strong bg-t-ip/10 hover:bg-lifted/60"
+                }`}
+              >
                 ip:port
               </span>
             </button>

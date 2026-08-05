@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { geoNaturalEarth1, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
-import { Minus, Plus, RotateCcw } from "lucide-react";
+import { Minus, Play, Plus, RotateCcw } from "lucide-react";
 import worldData from "world-atlas/countries-110m.json";
 import useGeo from "../hooks/useGeo";
 import { NUM_TO_A2 } from "../lib/isoCodes";
@@ -17,7 +17,8 @@ import { Group } from "./ui/Group";
 
 // the overview hero, a world map shaded by where malicious ips sit
 // toggles between volume (how many) and confidence (how certain)
-// zooms and pans, and every geolocated server is a dot on the land
+// zooms and pans, and motion only ever marks real feed events: the
+// window replays once on load, refresh arrivals ping, then it rests
 
 // project the country shapes once, they never change
 const MAP_W = 940;
@@ -38,6 +39,11 @@ const MODES = ["Volume", "Confidence"];
 
 // past this the 110m shapes get visibly blocky
 const MAX_ZOOM = 8;
+
+// the whole window compresses into this long a replay
+const REPLAY_MS = 8000;
+// how long one replay ring lives on screen
+const RING_MS = 1100;
 
 // three discrete bands, softened so a map of mostly high confidence
 // stays quiet and the doubtful regions are what stands out
@@ -60,29 +66,24 @@ function clampView({ k, x, y }) {
   };
 }
 
-// one marker per occupied map cell, thousands of ips share city
-// coordinates so collapsing them keeps the svg light, the count per
-// cell survives so busy locations can draw bigger than lone servers
-function dotsFor(rows) {
-  const cells = new Map();
-  for (const row of rows) {
-    if (!row.lat && !row.lon) continue;
-    const p = projection([row.lon, row.lat]);
-    if (!p) continue;
-    const key = `${Math.round(p[0])},${Math.round(p[1])}`;
-    const cell = cells.get(key);
-    if (cell) cell.n += 1;
-    else cells.set(key, { key, x: p[0], y: p[1], n: 1 });
-  }
-  return [...cells.values()];
+// "2026-05-21 21:58:26 UTC" from the feed to a millisecond timestamp
+function parseSeen(s) {
+  return Date.parse(s.replace(" UTC", "Z").replace(" ", "T"));
 }
 
-export function OriginMap({ iocs }) {
+function reducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+export function OriginMap({ iocs, previous = [] }) {
   const navigate = useNavigate();
   const [mode, setMode] = useState("Volume");
   const [hovered, setHovered] = useState(null);
   const [view, setView] = useState({ k: 1, x: 0, y: 0 });
   const [pulses, setPulses] = useState([]);
+  const [ticker, setTicker] = useState(null);
+  const [replayT, setReplayT] = useState(null);
+  const [surgeOn, setSurgeOn] = useState(false);
   const wrapRef = useRef(null);
   const svgRef = useRef(null);
   const tipRef = useRef(null);
@@ -90,10 +91,16 @@ export function OriginMap({ iocs }) {
   const wasDragRef = useRef(false);
   const cursorRef = useRef({ x: 0, y: 0 });
   const prevIpsRef = useRef(null);
+  const rafRef = useRef(null);
+  const surgeTimerRef = useRef(null);
   const ips = useMemo(() => extractIPs(iocs), [iocs]);
   const confByIp = useMemo(() => ipConfidenceMap(iocs), [iocs]);
   const countByIp = useMemo(() => ipIocCounts(iocs), [iocs]);
   const geo = useGeo(ips);
+  // the previous window's geography, for spotting which countries grew
+  const prevIps = useMemo(() => extractIPs(previous), [previous]);
+  const prevCountByIp = useMemo(() => ipIocCounts(previous), [previous]);
+  const prevGeo = useGeo(prevIps);
   // a disabled query never resolves, so track the no-ips case ourselves
   const loading = ips.length > 0 && geo.isPending;
 
@@ -126,27 +133,171 @@ export function OriginMap({ iocs }) {
   const top = origins.slice(0, 6);
   const maxCount = origins[0]?.count ?? 1;
 
-  const dots = useMemo(() => dotsFor(geo.data ?? []), [geo.data]);
+  const prevByCountry = useMemo(() => {
+    const map = {};
+    for (const row of prevGeo.data ?? []) {
+      map[row.countryCode] =
+        (map[row.countryCode] || 0) + (prevCountByIp[row.ip] ?? 0);
+    }
+    return map;
+  }, [prevGeo.data, prevCountByIp]);
 
-  // ping the locations that arrived since the last refresh, the first
-  // load and range changes replace everything so those stay silent
+  // the countries that grew the most against the previous window,
+  // capped so the one time glow stays a highlight and not a light show
+  const surged = useMemo(() => {
+    if (previous.length === 0 || !prevGeo.data) return [];
+    return origins
+      .map((c) => ({ code: c.code, growth: c.count - (prevByCountry[c.code] ?? 0) }))
+      .filter((c) => c.growth > 0)
+      .sort((a, b) => b.growth - a.growth)
+      .slice(0, 8)
+      .map((c) => c.code);
+  }, [origins, prevByCountry, previous.length, prevGeo.data]);
+
+  // every geolocated server as a timed event, earliest sighting first,
+  // this is what the replay and the arrival ticker are built from
+  const events = useMemo(() => {
+    const rows = geo.data ?? [];
+    if (rows.length === 0) return [];
+    const meta = {};
+    for (const ioc of iocs) {
+      if (ioc.ioc_type !== "ip:port") continue;
+      const ip = ioc.ioc.split(":")[0];
+      const t = parseSeen(ioc.first_seen);
+      if (!Number.isFinite(t)) continue;
+      const m = meta[ip];
+      if (!m || t < m.t) meta[ip] = { t, fam: ioc.malware_printable };
+    }
+    const evs = [];
+    for (const row of rows) {
+      const m = meta[row.ip];
+      if (!m || (!row.lat && !row.lon)) continue;
+      const p = projection([row.lon, row.lat]);
+      if (!p) continue;
+      evs.push({
+        ip: row.ip,
+        x: p[0],
+        y: p[1],
+        t: m.t,
+        fam: m.fam,
+        code: row.countryCode,
+        name: row.country,
+        count: countByIp[row.ip] ?? 1,
+        conf: confByIp[row.ip] ?? 0,
+      });
+    }
+    evs.sort((a, b) => a.t - b.t);
+    return evs;
+  }, [geo.data, iocs, countByIp, confByIp]);
+
+  // real timestamps squeezed onto the replay clock
+  const timeline = useMemo(() => {
+    if (events.length < 2) return [];
+    const t0 = events[0].t;
+    const span = events[events.length - 1].t - t0 || 1;
+    return events.map((ev) => ({
+      ...ev,
+      at: ((ev.t - t0) / span) * REPLAY_MS,
+    }));
+  }, [events]);
+
+  function fireSurge() {
+    clearTimeout(surgeTimerRef.current);
+    setSurgeOn(true);
+    surgeTimerRef.current = setTimeout(() => setSurgeOn(false), 2600);
+  }
+
+  // play the window from its first arrival to now, then settle and
+  // hand off to the surge glow, quantized so renders stay coarse
+  function startReplay() {
+    if (timeline.length === 0 || reducedMotion()) {
+      fireSurge();
+      return;
+    }
+    cancelAnimationFrame(rafRef.current);
+    const t0 = performance.now();
+    let lastQ = -1;
+    const tick = (now) => {
+      const t = now - t0;
+      if (t >= REPLAY_MS + RING_MS) {
+        setReplayT(null);
+        fireSurge();
+        return;
+      }
+      const q = Math.floor(t / 140) * 140;
+      if (q !== lastQ) {
+        lastQ = q;
+        setReplayT(q);
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+  }
+
+  useEffect(
+    () => () => {
+      cancelAnimationFrame(rafRef.current);
+      clearTimeout(surgeTimerRef.current);
+    },
+    [],
+  );
+
+  // one effect decides what a data change means: a new scene replays,
+  // a refresh pings only what actually arrived
   useEffect(() => {
     const rows = geo.data ?? [];
     if (rows.length === 0) return;
     const prev = prevIpsRef.current;
     prevIpsRef.current = new Set(rows.map((r) => r.ip));
-    if (!prev) return;
-    const fresh = rows.filter((r) => !prev.has(r.ip));
-    if (fresh.length === 0 || fresh.length > 50) return;
-    setPulses(dotsFor(fresh));
+    const fresh = prev ? rows.filter((r) => !prev.has(r.ip)) : rows;
+    if (!prev || fresh.length > 50) {
+      startReplay();
+      return;
+    }
+    if (fresh.length === 0) return;
+    const freshEvents = events.filter((ev) =>
+      fresh.some((r) => r.ip === ev.ip),
+    );
+    const fams = [...new Set(freshEvents.map((ev) => ev.fam).filter(Boolean))];
+    setPulses(freshEvents);
+    setTicker({
+      count: fresh.length,
+      families: fams.slice(0, 2).join(", "),
+      at: Date.now(),
+    });
     const id = setTimeout(() => setPulses([]), 5200);
     return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [geo.data]);
+
+  // during the replay the shading is the cumulative state of the
+  // window at that instant, brightness stays on the final scale
+  const shading = useMemo(() => {
+    if (replayT === null) return byCountry;
+    const map = {};
+    for (const ev of timeline) {
+      if (ev.at > replayT) break;
+      const entry = (map[ev.code] ??= {
+        code: ev.code,
+        name: ev.name,
+        count: 0,
+        ips: 0,
+        confSum: 0,
+      });
+      entry.count += ev.count;
+      entry.ips += 1;
+      entry.confSum += ev.conf;
+    }
+    for (const entry of Object.values(map)) {
+      entry.avgConf = Math.round(entry.confSum / entry.ips);
+    }
+    return map;
+  }, [replayT, timeline, byCountry]);
 
   // shading strength, sqrt keeps mid sized countries visible next to the top one
   // a small floor keeps single ioc countries above the no data shade
   function fillFor(a2) {
-    const entry = a2 ? byCountry[a2] : null;
+    const entry = a2 ? shading[a2] : null;
     if (!entry) return { fill: "var(--color-overlay)", opacity: 0.55 };
     if (mode === "Volume") {
       const t = Math.sqrt(entry.count / maxCount);
@@ -224,7 +375,7 @@ export function OriginMap({ iocs }) {
   }
 
   // the tooltip trails the cursor, moved directly so the svg with its
-  // thousands of nodes does not re-render on every mouse move
+  // hundreds of nodes does not re-render on every mouse move
   function positionTip(e) {
     const wrap = wrapRef.current;
     if (!wrap) return;
@@ -237,14 +388,22 @@ export function OriginMap({ iocs }) {
   }
 
   const hoveredEntry = hovered ? byCountry[hovered.a2] : null;
+  const hoveredDelta =
+    hoveredEntry && previous.length > 0 && prevGeo.data
+      ? hoveredEntry.count - (prevByCountry[hovered.a2] ?? 0)
+      : null;
   const { k, x, y } = view;
+  const replayRings =
+    replayT === null
+      ? []
+      : timeline.filter((ev) => ev.at <= replayT && ev.at > replayT - RING_MS);
 
   return (
     <Group
       title="Origins"
       description={
         mode === "Volume"
-          ? "Malicious IPs by country, brighter means more IOCs and every dot is a server, click a country to browse"
+          ? "Malicious IPs by country, brighter means more IOCs, click a country to browse"
           : "Average confidence of malicious IPs per country in three bands, click a country to browse"
       }
       actions={
@@ -314,27 +473,25 @@ export function OriginMap({ iocs }) {
                       />
                     );
                   })}
-                  {dots.map((d, i) => (
+                  {replayRings.map((ev) => (
                     <circle
-                      key={d.key}
-                      className="map-dot"
-                      cx={d.x}
-                      cy={d.y}
-                      r={1.5 / Math.sqrt(k)}
-                      fill="var(--color-accent-soft)"
-                      fillOpacity={0.75}
-                      stroke="rgb(0 0 0 / 0.5)"
-                      strokeWidth={0.3 / k}
+                      key={ev.ip}
+                      className="map-flash"
+                      cx={ev.x}
+                      cy={ev.y}
+                      r={(2.5 + Math.min(3, ev.count)) / k}
+                      fill="none"
+                      stroke="var(--color-accent)"
+                      strokeWidth={1.2 / k}
                       pointerEvents="none"
-                      style={{ animationDelay: `${(i % 50) * 14}ms` }}
                     />
                   ))}
-                  {pulses.map((p) => (
+                  {pulses.map((ev) => (
                     <circle
-                      key={p.key}
+                      key={ev.ip}
                       className="map-pulse"
-                      cx={p.x}
-                      cy={p.y}
+                      cx={ev.x}
+                      cy={ev.y}
                       r={5 / k}
                       fill="none"
                       stroke="var(--color-accent)"
@@ -342,6 +499,21 @@ export function OriginMap({ iocs }) {
                       pointerEvents="none"
                     />
                   ))}
+                  {surgeOn &&
+                    surged.map((code) => {
+                      const c = COUNTRY_PATHS.find((p) => p.a2 === code);
+                      return c ? (
+                        <path
+                          key={`surge-${code}`}
+                          className="map-surge"
+                          d={c.d}
+                          fill="none"
+                          stroke="var(--color-accent)"
+                          strokeWidth={1.4 / k}
+                          pointerEvents="none"
+                        />
+                      ) : null;
+                    })}
                   {hovered && (
                     <path
                       d={hovered.d}
@@ -376,6 +548,17 @@ export function OriginMap({ iocs }) {
                 >
                   <Minus size={13} />
                 </button>
+                {timeline.length > 1 && (
+                  <button
+                    type="button"
+                    aria-label="Replay the window"
+                    title="Replay how this window filled in"
+                    onClick={startReplay}
+                    className="rounded-md border border-line bg-raised/90 p-1 text-ink-mid transition-colors duration-150 hover:bg-lifted hover:text-ink"
+                  >
+                    <Play size={13} />
+                  </button>
+                )}
                 {k > 1 && (
                   <button
                     type="button"
@@ -410,6 +593,18 @@ export function OriginMap({ iocs }) {
                   ))
                 )}
               </div>
+              {ticker && (
+                <Link
+                  key={ticker.at}
+                  to="/iocs"
+                  title="See them in the IOC browser"
+                  className="reveal absolute bottom-2.5 right-3 rounded-md border border-line bg-raised/90 px-2.5 py-1.5 font-mono text-meta text-ink-mid transition-colors duration-150 hover:border-line-strong hover:text-ink"
+                >
+                  +{ticker.count} server{ticker.count === 1 ? "" : "s"} this
+                  refresh
+                  {ticker.families ? ` · ${ticker.families}` : ""}
+                </Link>
+              )}
               {hovered && (
                 <div
                   ref={tipRef}
@@ -423,6 +618,17 @@ export function OriginMap({ iocs }) {
                     <span className="text-ink-mid">
                       {" "}
                       {hoveredEntry.count} IOCs, avg conf {hoveredEntry.avgConf}
+                      {hoveredDelta !== null && (
+                        <span
+                          className={
+                            hoveredDelta > 0 ? "text-conf-low" : "text-ink-low"
+                          }
+                        >
+                          {" "}
+                          {hoveredDelta >= 0 ? "+" : ""}
+                          {hoveredDelta} vs previous
+                        </span>
+                      )}
                     </span>
                   ) : (
                     <span className="text-ink-low"> no recorded IOCs</span>
@@ -465,7 +671,7 @@ export function OriginMap({ iocs }) {
                 <span className="truncate">{c.name}</span>
                 <span className="ml-auto h-[5px] w-11 shrink-0 overflow-hidden rounded-sm bg-bg">
                   <span
-                    className="block h-full"
+                    className="block h-full transition-[width] duration-500"
                     style={{
                       width: `${Math.round((c.count / maxCount) * 100)}%`,
                       background:

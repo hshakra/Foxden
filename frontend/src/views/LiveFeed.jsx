@@ -125,7 +125,7 @@ export default function LiveFeed() {
               />
             </Group>
 
-            <OriginMap iocs={iocs} />
+            <OriginMap iocs={iocs} previous={previous} />
 
             <Group
               title="Movers"

@@ -125,21 +125,14 @@ input:focus-visible {
   outline: none;
 }
 
-/* origin map life: country colors crossfade between metrics, server
-   dots stagger in on load, and fresh arrivals ping like a radar,
+/* origin map life: country colors tween between data states, the
+   load replay flashes each arrival once, refresh pings ring three
+   times, surging countries glow once, then everything rests,
    the reduced motion block below stills all of it */
 .map-country {
   transition:
     fill 300ms,
     fill-opacity 300ms;
-}
-@keyframes map-dot-in {
-  from {
-    opacity: 0;
-  }
-}
-.map-dot {
-  animation: map-dot-in 0.5s both;
 }
 @keyframes map-pulse {
   from {
@@ -156,6 +149,25 @@ input:focus-visible {
   transform-origin: center;
   animation: map-pulse 1.6s ease-out 3;
   opacity: 0;
+}
+.map-flash {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: map-pulse 1.1s ease-out 1 both;
+}
+@keyframes map-surge {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.map-surge {
+  animation: map-surge 2.4s ease-out 1 both;
 }
 
 @media (prefers-reduced-motion: reduce) {

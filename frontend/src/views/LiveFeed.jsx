@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, RefreshCw } from "lucide-react";
+import { ArrowRight, RefreshCw, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import useRecentIOCs from "../hooks/useRecentIOCs";
 import useFrozenFeed from "../hooks/useFrozenFeed";
@@ -32,6 +32,10 @@ export default function LiveFeed() {
   const { days } = useRange();
   const frozen = useFrozenFeed(recent.data, `${days}:${recent.isPlaceholderData}`);
   const [selected, setSelected] = useState(null);
+  // a one time hello for first visits, remembered in the browser
+  const [showIntro, setShowIntro] = useState(
+    () => !localStorage.getItem("foxden-welcomed"),
+  );
   const [familyFilter, setFamilyFilter] = useState(null);
   const [typeFilter, setTypeFilter] = useState([]);
   const [threatFilter, setThreatFilter] = useState([]);
@@ -99,6 +103,32 @@ export default function LiveFeed() {
                 <RefreshCw size={12} />
                 {frozen.pendingCount} new IOCs arrived, refresh
               </button>
+            )}
+
+            {showIntro && (
+              <div className="flex items-start gap-3 rounded-lg border border-line bg-raised px-4 py-3">
+                <p className="min-w-0 text-secondary leading-relaxed text-ink-mid">
+                  First time here? Foxden turns ThreatFox, a live public feed
+                  of cyberattack indicators, into a dashboard you can work in.{" "}
+                  <Link
+                    to="/about"
+                    className="font-medium text-accent-soft hover:underline"
+                  >
+                    What this is and who it serves
+                  </Link>
+                </p>
+                <button
+                  type="button"
+                  aria-label="Dismiss introduction"
+                  onClick={() => {
+                    localStorage.setItem("foxden-welcomed", "1");
+                    setShowIntro(false);
+                  }}
+                  className="ml-auto rounded-md p-1 text-ink-low transition-colors duration-150 hover:bg-lifted hover:text-ink"
+                >
+                  <X size={14} />
+                </button>
+              </div>
             )}
 
             <Group

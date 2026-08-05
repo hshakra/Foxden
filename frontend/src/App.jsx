@@ -7,6 +7,7 @@ import FamilyProfile from "./views/FamilyProfile";
 import FamiliesIndex from "./views/FamiliesIndex";
 import IOCBrowse from "./views/IOCBrowse";
 import TagsIndex from "./views/TagsIndex";
+import About from "./views/About";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/tags" element={<TagsIndex />} />
             <Route path="/family/:name" element={<FamilyProfile />} />
             <Route path="/tag/:name" element={<TagExplorer />} />
+            <Route path="/about" element={<About />} />
           </Route>
         </Routes>
       </RangeProvider>

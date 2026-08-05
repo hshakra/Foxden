@@ -59,6 +59,9 @@ export function NavRail() {
         <FoxLogo size={22} />
         <span className="text-[15px] font-medium tracking-tight">Foxden</span>
       </NavLink>
+      <p className="-mt-4 mb-6 px-2 text-meta leading-snug text-ink-low">
+        Live threat intel from the ThreatFox feed
+      </p>
 
       <nav className="flex flex-col gap-4">
         {groups.map((group) => (
@@ -91,6 +94,14 @@ export function NavRail() {
       </nav>
 
       <div className="mt-auto border-t border-line px-2.5 pt-3 text-meta leading-relaxed text-ink-low">
+        <NavLink
+          to="/about"
+          className={`mb-1 block transition-colors duration-150 hover:text-ink ${
+            pathname === "/about" ? "text-accent-soft" : "text-ink-mid"
+          }`}
+        >
+          About Foxden
+        </NavLink>
         <p className="flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-accent" />
           Live feed

@@ -34,7 +34,7 @@ export function TopPorts({ iocs }) {
             )}
             <span className="ml-auto h-[5px] w-14 shrink-0 overflow-hidden rounded-sm bg-bg">
               <span
-                className="block h-full bg-line-strong"
+                className="block h-full bg-line-strong transition-[width] duration-500"
                 style={{ width: `${Math.round((p.count / max) * 100)}%` }}
               />
             </span>

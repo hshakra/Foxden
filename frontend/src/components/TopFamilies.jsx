@@ -19,7 +19,7 @@ function MixBar({ mix }) {
       {mix.parts.map((p) => (
         <span
           key={p.type}
-          className="rounded-[1px]"
+          className="rounded-[1px] transition-[width] duration-500"
           style={{ width: `${p.pct}%`, background: typeColor(p.type) }}
         />
       ))}

@@ -110,7 +110,10 @@ export default function FamiliesIndex() {
   return (
     <>
       <TopBar title="Families" subtitle="Every family active in range" />
-      <div className="reveal flex flex-col gap-8 p-6">
+      <div
+        key={recent.isPending ? "loading" : "ready"}
+        className="reveal flex flex-col gap-8 p-6"
+      >
         {recent.isPending ? (
           <SkeletonRows rows={12} />
         ) : recent.isError ? (
@@ -187,7 +190,7 @@ export default function FamiliesIndex() {
                         type="button"
                         disabled={!c.sortable}
                         onClick={() => c.sortable && toggleSort(c.key)}
-                        className={`flex items-center gap-1 text-secondary font-medium whitespace-nowrap ${
+                        className={`flex items-center gap-1 text-secondary font-medium whitespace-nowrap transition-colors duration-150 ${
                           c.right ? "justify-end" : ""
                         } ${
                           sort.key === c.key
@@ -240,7 +243,7 @@ export default function FamiliesIndex() {
                             <span
                               key={p.type}
                               title={`${p.type} ${p.pct}%`}
-                              className="rounded-[1px]"
+                              className="rounded-[1px] transition-[width] duration-500"
                               style={{
                                 width: `${p.pct}%`,
                                 background: typeColor(p.type),

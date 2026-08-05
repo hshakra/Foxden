@@ -72,7 +72,10 @@ export default function IOCBrowse() {
         title="IOCs"
         subtitle="Browse all indicators of compromise in range"
       />
-      <div className="reveal p-6">
+      <div
+        key={recent.isPending || waitingOnGeo ? "loading" : "ready"}
+        className="reveal p-6"
+      >
         {recent.isPending || waitingOnGeo ? (
           <SkeletonRows rows={12} />
         ) : recent.isError ? (

@@ -21,7 +21,7 @@ function Bar({ label, parts, colorFor, labelFor, titleFor, onClick }) {
             type="button"
             title={`Filter feed to ${labelFor(d.type)}`}
             onClick={() => onClick?.(d.type)}
-            className="rounded-sm transition-opacity duration-150 hover:opacity-80"
+            className="rounded-sm transition-[width,opacity] duration-500 hover:opacity-80"
             style={{ width: `${d.pct}%`, background: colorFor(d.type) }}
           />
         ))}

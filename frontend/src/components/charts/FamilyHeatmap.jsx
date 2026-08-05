@@ -104,7 +104,7 @@ function Row({ row, max, onHover }) {
         <span
           key={i}
           title={`${row.name}, ${cell.date}: ${cell.count}`}
-          className="h-[18px] rounded-[3px]"
+          className="h-[18px] rounded-[3px] transition-[background-color] duration-300"
           style={{ background: heatColor(Math.sqrt(cell.count / max)) }}
         />
       ))}

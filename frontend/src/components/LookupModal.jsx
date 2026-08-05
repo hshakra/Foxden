@@ -198,7 +198,7 @@ export function LookupModal({ open, onClose }) {
         aria-modal="true"
         aria-label="IOC lookup"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-3xl rounded-lg border border-line-strong bg-overlay p-4 shadow-2xl"
+        className="reveal w-full max-w-3xl rounded-lg border border-line-strong bg-overlay p-4 shadow-2xl"
       >
         <form
           className="flex items-center gap-2.5"

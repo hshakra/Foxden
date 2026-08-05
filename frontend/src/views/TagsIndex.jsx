@@ -99,7 +99,10 @@ export default function TagsIndex() {
   return (
     <>
       <TopBar title="Tags" subtitle="Every tag seen in range" />
-      <div className="reveal flex flex-col gap-8 p-6">
+      <div
+        key={recent.isPending ? "loading" : "ready"}
+        className="reveal flex flex-col gap-8 p-6"
+      >
         {recent.isPending ? (
           <SkeletonRows rows={12} />
         ) : recent.isError ? (
@@ -167,7 +170,7 @@ export default function TagsIndex() {
                         type="button"
                         disabled={!c.sortable}
                         onClick={() => c.sortable && toggleSort(c.key)}
-                        className={`flex items-center gap-1 text-secondary font-medium ${
+                        className={`flex items-center gap-1 text-secondary font-medium transition-colors duration-150 ${
                           c.right ? "justify-end" : ""
                         } ${
                           sort.key === c.key

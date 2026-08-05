@@ -160,10 +160,11 @@ export function FeedTable({
     return [...seen].sort();
   }, [stream]);
 
-  // reset paging whenever the result set changes shape
+  // reset paging when the filters change shape, not on the background
+  // refresh, that would yank a deep reader back to the first page
   useEffect(() => {
     setLimit(PAGE);
-  }, [typeFilter, threatFilter, minConf, familyFilter, countryFilter, portFilter, iocs]);
+  }, [typeFilter, threatFilter, minConf, familyFilter, countryFilter, portFilter]);
 
   const cap = preview || limit;
   const visible = useMemo(() => filtered.slice(0, cap), [filtered, cap]);

@@ -57,7 +57,7 @@ export function IOCDrawer({ ioc, onClose, onFamilyFilterChange, onNavigate, pool
   return (
     <aside
       aria-label="IOC details"
-      className="relative flex h-fit flex-col rounded-lg border border-line-strong bg-overlay p-4 shadow-xl"
+      className="reveal relative flex h-fit flex-col rounded-lg border border-line-strong bg-overlay p-4 shadow-xl"
     >
       <div className="mb-2 flex items-center gap-2">
         <TypeBadge type={ioc.ioc_type} />

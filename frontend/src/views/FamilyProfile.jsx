@@ -31,7 +31,10 @@ export default function FamilyProfile() {
         subtitle="Malware family"
         crumbs={[{ label: "Families", to: "/families" }, { label: name }]}
       />
-      <div className="reveal flex flex-col gap-8 p-6">
+      <div
+        key={family.isPending ? "loading" : "ready"}
+        className="reveal flex flex-col gap-8 p-6"
+      >
         {family.isPending ? (
           <SkeletonRows rows={8} />
         ) : family.isError && isNoResult(family.error) ? (

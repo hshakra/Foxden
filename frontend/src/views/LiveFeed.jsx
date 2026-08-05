@@ -78,7 +78,11 @@ export default function LiveFeed() {
           )
         }
       />
-      <div className="reveal flex flex-col gap-8 p-6">
+      {/* keyed so the fade replays when the real content replaces the skeleton */}
+      <div
+        key={recent.isPending && !frozen.data ? "loading" : "ready"}
+        className="reveal flex flex-col gap-8 p-6"
+      >
         {recent.isPending && !frozen.data ? (
           <SkeletonRows rows={10} />
         ) : recent.isError && !frozen.data ? (
@@ -94,7 +98,7 @@ export default function LiveFeed() {
               <button
                 type="button"
                 onClick={frozen.refresh}
-                className="fixed left-1/2 top-4 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-accent/50 bg-overlay px-4 py-2 font-mono text-meta text-accent-soft shadow-xl transition-colors duration-150 hover:bg-lifted"
+                className="reveal fixed left-1/2 top-4 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-accent/50 bg-overlay px-4 py-2 font-mono text-meta text-accent-soft shadow-xl transition-colors duration-150 hover:bg-lifted"
               >
                 <RefreshCw size={12} />
                 {frozen.pendingCount} new IOCs arrived, refresh

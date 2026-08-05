@@ -39,7 +39,7 @@ export function Menu({ label, active, children }) {
         <ChevronDown size={12} className="text-ink-low" />
       </button>
       {open && (
-        <span className="absolute left-0 top-full z-20 mt-1 flex w-52 flex-col overflow-hidden rounded-lg border border-line-strong bg-overlay py-1 shadow-xl">
+        <span className="reveal absolute left-0 top-full z-20 mt-1 flex w-52 flex-col overflow-hidden rounded-lg border border-line-strong bg-overlay py-1 shadow-xl">
           {children}
         </span>
       )}

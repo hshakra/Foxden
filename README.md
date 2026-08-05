@@ -53,16 +53,6 @@ npm run dev            # opens on http://localhost:5173
 
 The Vite dev server proxies /api to the backend, so there is nothing else to configure in dev.
 
-## Deploy
-
-Both halves run free on Vercel's hobby plan, no credit card.
-
-Backend: import the repo as a project with the root directory set to backend. Vercel detects the FastAPI app in main.py on its own. Set THREATFOX_API_KEY and ALLOWED_ORIGINS (your frontend URL) in the environment.
-
-Frontend: import the repo again as a second project with the root directory set to frontend. Set VITE_API_BASE_URL to the backend URL. vercel.json ships the security headers and single page routing. Cloudflare Pages works too, the `_headers` and `_redirects` files in frontend/public carry the same config.
-
-Render or any container host also runs the backend, the Dockerfile is generic and render.yaml documents the settings.
-
 ## Security notes
 
 - The ThreatFox key never reaches the browser. Every upstream call goes through the backend.
